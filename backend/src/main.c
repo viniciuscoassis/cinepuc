@@ -8,14 +8,14 @@ int main(){
     int sucesso;
     char nome = "Sala 1";
 
-    sucesso = criaSala(nome);
+    /*sucesso = criaSala(nome);
 
     if(sucesso != 0){
-        printf("Error")
+        printf("Error");
     }
     else {
         printf("Success");
-    }
+    }*/
 }
 
 int criaSala(char nome){
@@ -34,7 +34,7 @@ int criaSala(char nome){
 
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Erro ao inserir nova sala: %s\n", sqlite3_errmsg(db));
-        sqlite3_free(err_msg);
+        sqlite3_free(msg_error);
         sqlite3_close(db);
         return 1;
     }

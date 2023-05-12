@@ -7,7 +7,7 @@
 #define HEIGHT 1            //altura da cadeira
 #define WIDTH 3             //largura da cadeira 
 #define TOTAL_WIDTH ((WIDTH + GRID_SPACING) * (CHAIR_COL_AMOUNT + 1) - GRID_SPACING)    //largura de toda a interface somada
-#define TOTAL_HEIGHT ((HEIGHT + GRID_SPACING) * (CHAIR_LINE_AMOUNT + 1) - GRID_SPACING) //altura de toda a interface somada
+#define TOTAL_HEIGHT ((HEIGHT + GRID_SPACING) * (CHAIR_LINE_AMOUNT + 1 + 1) - GRID_SPACING) //altura de toda a interface somada
 #define GRID_SPACING 1      //espaço entre as cadeiras
 #define CHAIR_LINE_AMOUNT 8 //numero de cadeiras por linha
 #define CHAIR_COL_AMOUNT 8  //numero de cadeiras por coluna
@@ -22,6 +22,7 @@ WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cade
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
 void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
+void drawTELA();  //função para criar o texto TELA
 void mouseFunc();  //função para detectar se o mouse clicou na respectiva cadeira
 
 int main()
@@ -34,6 +35,7 @@ int main()
   
   initColors();
   drawChairMenu();
+  drawTELA();
   mouseFunc();
   
   getch();
@@ -99,6 +101,19 @@ void drawChairMenu(){
           }
       }
   }
+}
+
+void drawTELA(){
+  WINDOW *TELA;
+  int boxX, boxY;
+
+  boxX = STARTX + (WIDTH + GRID_SPACING) * 1;  //boxX = primeira coluna da interface (1)
+  boxY = STARTY + (HEIGHT + GRID_SPACING) * 9; //boxY = ultima linha da interface (9)
+  TELA = newwin(1, (TOTAL_WIDTH - WIDTH - GRID_SPACING), boxY, boxX);
+  mvwprintw(TELA, 0,13,"TELA");
+  refresh();
+  wbkgd(TELA, COLOR_PAIR(3) | A_BOLD);
+  wrefresh(TELA);
 } 
 
 void mouseFunc(){

@@ -1,0 +1,13 @@
+   1 -  Solicitar os dados necessários ao usuário, como número da sala, filme, quantidade de ingressos e assentos desejados.
+
+   2 -  Verificar se a sala e o filme selecionados estão disponíveis.
+
+   3 -  Verificar se a quantidade de ingressos solicitada está dentro da capacidade da sala.
+
+   4 -  Verificar se os assentos solicitados estão disponíveis.
+
+   5 -  Se todas as verificações passarem, marcar os assentos como reservados ou vendidos e atualizar o banco de dados com as informações da venda/reserva.
+
+   6 -  Exibir uma confirmação da venda/reserva para o usuário.
+
+   7 -  Caso ocorra algum erro durante o processo, exibir uma mensagem de erro apropriada.

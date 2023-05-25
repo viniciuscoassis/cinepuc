@@ -35,6 +35,7 @@ Para compilar o projeto, siga as instruções abaixo:
    ```bash
    clang src/main.c lib/*.c -o cinema -lsqlite3
   ```
+  
 4. Após a compilação bem-sucedida, você pode executar o programa com o seguinte comando:
 
     ```bash

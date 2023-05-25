@@ -1,6 +1,8 @@
 # Projeto de Reserva de Assentos em Clang
 
-Este é um projeto desenvolvido pelos alunos Vinicius Penido, Vinicius Assis, João Henrique, Guilherme Andrade e Felipe Mareca, com o objetivo de criar um sistema de reserva de assentos para sessões de filmes. 
+## Autores, descrição e requisitos
+
+Este é um projeto desenvolvido pelos alunos Vinicius Penido, Vinicius Assis, João Henrique, Matheus Boletta, Guilherme Andrade e Felipe Mareca, com o objetivo de criar um sistema de reserva de assentos para sessões de filmes. 
 O projeto é dividido em duas partes principais: a interface e o backend. O SQLite é utilizado para armazenar os dados das sessões e usuários, enquanto uma matriz é utilizada para representar a disposição dos assentos na sala. 
 Além disso, uma fila é implementada para armazenar os assentos escolhidos pelos usuários.
 
@@ -60,3 +62,16 @@ Você poderá interagir com o programa selecionando as opções correspondentes 
 Após a finalização da reserva, você poderá visualizar os assentos ocupados na matriz e acessar as informações das reservas no banco de dados SQLite, para fins de gerenciamento e acompanhamento das reservas realizadas.
 
 Divirta-se usando o sistema de reserva de assentos para sessões de filmes implementado pelos alunos!
+
+## *TODOS:
+
+- ~~Pitch de apresentação
+- ~~Construção do readme.md
+- Implementar biblioteca SQLite
+- Implementar cadastro
+- Implementar login
+- Implementar lista de assentos
+- Implementar interface de login
+- Implementar interface de cadastro
+- Implementar interface de assentos
+- Implementar mudança de cor de acordo com disponibilidade

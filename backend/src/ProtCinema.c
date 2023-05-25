@@ -1,19 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*-------------------------------------------------
-Organização prototipo do projeto Cinema contendo:
-- Estrutura base para reserva de cadeiras (Lista);
-- Função para selecionar uma cadeira e adicionar/ retirar na lista(Carrinho);
-- Reservar as Cadeiras selecionadas (Alterar o registro da lista)
--------------------------------------------------*/
-
 typedef struct cadeira
 {
     int id;
     int numero;
-    char comprador;
-    struct no* prox;
+    char comprador[50];
+    struct cadeira* prox;
 } Cadeira;
 
 typedef struct
@@ -23,21 +16,18 @@ typedef struct
     int tam;
 } Carrinho;
 
-// Funções de manipulação
 void cria(Carrinho* c);
 int insere(Carrinho* c, int id, int numero);
 int retira(Carrinho* c, int id);
-int reserva(Carrinho* c, char comprador);
+void reserva(Carrinho* c, char comprador[50]);
 int estaVazia(Carrinho c);
-
-//Funções de visualização
 void mostra(Carrinho c);
 
 int main()
 {
     Carrinho c;
     int id, numero, sucesso;
-    char comprador;
+    char comprador[50];
 
     cria(&c);
 
@@ -55,9 +45,13 @@ int main()
         printf("\n");
     }
 
-    comprador = "Felipe";
+    strcpy(comprador, "Felipe");
 
-    reserva(c, comprador);
+    reserva(&c, comprador);
+
+    mostra(c);
+
+    return 0;
 }
 
 void cria(Carrinho* c)
@@ -67,7 +61,7 @@ void cria(Carrinho* c)
     c->tam = 0;
 }
 
-int insere(Carrinho* l, int id, int numero)
+int insere(Carrinho* c, int id, int numero)
 {
     Cadeira* aux = (Cadeira*)malloc(sizeof(Cadeira));
     if (aux == NULL)
@@ -75,53 +69,62 @@ int insere(Carrinho* l, int id, int numero)
 
     aux->id = id;
     aux->numero = numero;
+    strcpy(aux->comprador, "");
     aux->prox = NULL;
 
-    if (l->inicio == NULL)
+    if (c->inicio == NULL)
     {
-        l->inicio = aux;
-        l->fim = aux;
+        c->inicio = aux;
+        c->fim = aux;
     }
     else
     {
-        l->fim->prox = aux;
-        l->fim = aux;
+        c->fim->prox = aux;
+        c->fim = aux;
     }
 
-    l->tam++;
+    c->tam++;
     return 1;
 }
 
-int retira(Carrinho* c, int id) {
+int retira(Carrinho* c, int id)
+{
     if (estaVazia(*c))
         return 0;
 
     Cadeira* atual = c->inicio;
     Cadeira* anterior = NULL;
 
-    while (atual != NULL && atual->id != id) {
+    while (atual != NULL && atual->id != id)
+    {
         anterior = atual;
         atual = atual->prox;
     }
 
-    if (atual == NULL) {
-        // O elemento não foi encontrado
+    if (atual == NULL)
+    {
+        // O elemento nÃ£o foi encontrado
         return 0;
     }
 
-    if (anterior == NULL) {
-        // Remoção do primeiro elemento
+    if (anterior == NULL)
+    {
+        // RemoÃ§Ã£o do primeiro elemento
         c->inicio = atual->prox;
 
-        if (c->fim == atual) {
-            // O elemento removido era o último
+        if (c->fim == atual)
+        {
+            // O elemento removido era o Ãºltimo
             c->fim = NULL;
         }
-    } else {
+    }
+    else
+    {
         anterior->prox = atual->prox;
 
-        if (c->fim == atual) {
-            // O elemento removido era o último
+        if (c->fim == atual)
+        {
+            // O elemento removido era o Ãºltimo
             c->fim = anterior;
         }
     }
@@ -131,37 +134,43 @@ int retira(Carrinho* c, int id) {
     return 1;
 }
 
-void mostra(Carrinho c) {
-    if (estaVazia(c)) {
-        printf("O carrinho está vazio.\n");
+void mostra(Carrinho c)
+{
+    if (estaVazia(c))
+    {
+        printf("O carrinho estÃ¡ vazio.\n");
         return;
     }
 
     Cadeira* atual = c.inicio;
 
-    while (atual != NULL) {
+    while (atual != NULL)
+    {
         printf("CadeiraID: %d \n", atual->id);
         printf("Numero da Cadeira: %d \n", atual->numero);
-        printf("Comprador: %c \n", atual->comprador);
+        printf("Comprador: %s \n", atual->comprador);
         atual = atual->prox;
     }
 }
 
-void reserva(Carrinho c, char comprador) {
-    if (estaVazia(c)) {
-        printf("O carrinho está vazio.\n");
+void reserva(Carrinho* c, char comprador[50])
+{
+    if (estaVazia(*c))
+    {
+        printf("O carrinho estÃ¡ vazio.\n");
         return;
     }
 
-    Cadeira* atual = c.inicio;
+    Cadeira* atual = c->inicio;
 
-    while (atual != NULL) {
-        atual->comprador = comprador;
+    while (atual != NULL)
+    {
+        strcpy(atual->comprador, comprador);
         atual = atual->prox;
     }
 }
 
-int estaVazia(Carrinho c) {
+int estaVazia(Carrinho c)
+{
     return c.inicio == NULL;
 }
-

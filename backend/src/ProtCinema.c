@@ -1,3 +1,9 @@
+/*
+  Programa: Reserva de Cadeiras
+  Descrição: Simula a reserva de cadeiras dentro de uma sala.
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 

@@ -63,6 +63,14 @@ Após a finalização da reserva, você poderá visualizar os assentos ocupados 
 
 Divirta-se usando o sistema de reserva de assentos para sessões de filmes implementado pelos alunos!
 
+## Organização:
+
+O projeto será dividido em dois grupos:
+-Backend: (Vinicius Penido, Felipe Mareca, Vinícius Assis, Mateus Boleta)
+-Frontend: (Guilherme Andrade, João Henrique)
+O grupo do Backend será responsável pela lógica do programa e pelo banco de dados, já o grupo Frontend será responsável pela parte visual do programa.
+
+
 ## *TODOS:
 
 - ~~Pitch de apresentação

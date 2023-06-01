@@ -65,10 +65,7 @@ Divirta-se usando o sistema de reserva de assentos para sessões de filmes imple
 
 ## Organização:
 
-O projeto será dividido em dois grupos:
--Backend: (Vinicius Penido, Felipe Mareca, Vinícius Assis, Mateus Boleta)
--Frontend: (Guilherme Andrade, João Henrique)
-O grupo do Backend será responsável pela lógica do programa e pelo banco de dados, já o grupo Frontend será responsável pela parte visual do programa.
+O projeto será dividido em dois grupos BACKEND:(Vinicius Penido, Felipe Mareca, Vinícius Assis, Mateus Boleta) FRONTEND:(Guilherme Andrade, João Henrique) O grupo do Backend será responsável pela lógica do programa e pelo banco de dados, já o grupo Frontend será responsável pela parte visual do programa.
 
 
 ## *TODOS:

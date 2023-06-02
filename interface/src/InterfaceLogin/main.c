@@ -1,11 +1,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <string.h>
 
 #define MAX_TEXT_LENGTH 50
 enum { LOGIN_FIELD, PASSWORD_FIELD } activeField = LOGIN_FIELD;
 
-void centerHUD(SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect,int passwordTextHeight,int windowWidth, int windowHeight);
+void centerHUD(SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* imageRect,int passwordTextHeight,int windowWidth, int windowHeight);
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -56,6 +57,8 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
+
+    SDL_Texture* image = IMG_LoadTexture(renderer, "../assets/image1.jpg");
 
     // Set up the text to render
     const char* loginText = "Login:";
@@ -146,6 +149,8 @@ int main(int argc, char* argv[]) {
 
     int windowWidth, windowHeight;
 
+    SDL_Rect imageRect = { 0, 0, 150, 150 };
+
     // Set up the rectangle for the login box
     SDL_Rect loginBoxRect = { 0, 0, 300, loginTextHeight + 20 };
 
@@ -159,7 +164,7 @@ int main(int argc, char* argv[]) {
     SDL_Rect cancelButtonBoxRect = { 0, 0, 130, cancelButtonTextHeight + 15};
 
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-    centerHUD(&loginBoxRect, &passwordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, passwordTextHeight, windowWidth, windowHeight);
+    centerHUD(&loginBoxRect, &passwordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, &imageRect, passwordTextHeight, windowWidth, windowHeight);
     // Create a buffer to hold the text
     char loginInputText[MAX_TEXT_LENGTH + 1];  // Add 1 for null-terminator
     memset(loginInputText, 0, sizeof(loginInputText));
@@ -256,7 +261,7 @@ int main(int argc, char* argv[]) {
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                     // Window resized, re-center the HUD
                     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-                    centerHUD(&loginBoxRect, &passwordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, passwordTextHeight, windowWidth, windowHeight);
+                    centerHUD(&loginBoxRect, &passwordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, &imageRect,passwordTextHeight, windowWidth, windowHeight);
                 }
             }
         }
@@ -268,6 +273,9 @@ int main(int argc, char* argv[]) {
         // Render the login box border
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Black color
         SDL_RenderDrawRect(renderer, &loginBoxRect);
+
+        //Render the image
+        SDL_RenderCopy(renderer, image, NULL, &imageRect);
 
         // Render the login text
         int loginTextPosX = loginBoxRect.x + 10;
@@ -351,6 +359,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Clean up resources
+    SDL_DestroyTexture(image);
     SDL_DestroyTexture(loginTextTexture);
     SDL_DestroyTexture(passwordTextTexture);
     SDL_FreeSurface(loginTextSurface);
@@ -368,10 +377,14 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void centerHUD(SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect,int passwordTextHeight,int windowWidth, int windowHeight) {
+void centerHUD(SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* imageRect,int passwordTextHeight,int windowWidth, int windowHeight) {
     // Calculate the new position of the login box
     loginBoxRect->x = (windowWidth - loginBoxRect->w) / 2;
     loginBoxRect->y = (windowHeight - loginBoxRect->h - passwordBoxRect->h - 40) / 2;
+
+    //Calculate the new position of the image box
+    imageRect->x = (windowWidth - imageRect->w) / 2;
+    imageRect->y = loginBoxRect->y - 200;
 
     // Calculate the new position of the password box
     passwordBoxRect->x = (windowWidth - passwordBoxRect->w) / 2;

@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
     int windowWidth, windowHeight;
 
-    SDL_Rect imageRect = { 0, 0, 150, 150 };
+    SDL_Rect imageRect = { 0, 0, 131, 172 };
 
     // Set up the rectangle for the login box
     SDL_Rect loginBoxRect = { 0, 0, 300, loginTextHeight + 20 };
@@ -384,7 +384,7 @@ void centerHUD(SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* logi
 
     //Calculate the new position of the image box
     imageRect->x = (windowWidth - imageRect->w) / 2;
-    imageRect->y = loginBoxRect->y - 200;
+    imageRect->y = loginBoxRect->y - 220;
 
     // Calculate the new position of the password box
     passwordBoxRect->x = (windowWidth - passwordBoxRect->w) / 2;

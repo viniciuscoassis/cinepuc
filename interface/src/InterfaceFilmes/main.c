@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     strcpy(movies[1][1].name, "Avatar: O Caminho da Agua");
 
     TTF_Init();
-    TTF_Font *font = TTF_OpenFont("assets/arial/arial.ttf", 24);
+    TTF_Font *font = TTF_OpenFont("../assets/arial.ttf", 24);
     if (!font)
     {
         printf("Failed to load font: %s\n", TTF_GetError());

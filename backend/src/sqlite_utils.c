@@ -10,6 +10,7 @@ void initialize_sqlite() {
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Erro ao abrir o banco de dados: %s\n", sqlite3_errmsg(db));
     }
+    fprintf(stdout, "Banco aberto\n");
 }
 
 void execute_query(const char* query) {

@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "sqlite_utils.h"
 // #include <Windows.h>
 
 typedef struct usuario {
@@ -26,6 +27,10 @@ int main() {
     int escolha = 0;
     char email[50];
     char senha[20];
+    initialize_sqlite();
+       const char* query = "INSERT INTO Usuario (nome, email, senha) VALUES ('vinicius', 'vini@gmail.com', 123321)";
+    execute_query(query);
+
 
     while (escolha != 3) {
         printf("===== MENU =====\n");
@@ -40,6 +45,7 @@ int main() {
             case 1:
                 // Cadastrar usuarios
                 printf("===== CADASTRO DE USUARIOS =====\n");
+ 
 
                 while (1) {
                     Usuario novoUsuario;

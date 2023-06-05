@@ -1,0 +1,3 @@
+# Comando para importar o banco de dados.
+
+sqlite3 cinema.db < cinema.sql

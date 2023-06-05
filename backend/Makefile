@@ -4,13 +4,13 @@ BIN=sqlitec
 OBJ=sqllite3.o 
 
 all: sqlite3.o
-	${CC} ${CFLAGS} src/main.c sqlite3.o -o sqlitec
+	${CC} ${CFLAGS} src/protCadastro.c sqlite3.o -o sqlitec
 
 sqlite3.o:
 	${CC} ${CFLAGS} -c src/sqlite3.c -o $@
 
 format:
-	clang-format -i --verbose src/main.c
+	clang-format -i --verbose src/protCadastro.c
 	
 clean: 
 	${RM} -r ${OBJ}

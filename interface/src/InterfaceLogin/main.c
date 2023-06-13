@@ -1,14 +1,34 @@
+// sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev
+// gcc -o main main.c -lSDL2 -lSDL2_image -lSDL2_ttf
+//./main
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 #include <string.h>
 
+//Login/Register Screen
 #define MAX_TEXT_LENGTH 50
-enum { LOGIN_SCREEN, REGISTER_SCREEN, MOVIE_SCREEN } currentScreen = LOGIN_SCREEN;
+enum { LOGIN_SCREEN, REGISTER_SCREEN, MOVIE_SCREEN, TIME_SELECTION_SCREEN } currentScreen = LOGIN_SCREEN;
 enum { LOGIN_FIELD, PASSWORD_FIELD, CONFIRM_FIELD } activeField = LOGIN_FIELD;
 enum { SHOW, HIDE } showPassword = SHOW;
 enum { SHOW_CONFIRM, HIDE_CONFIRM  } showConfirmPassword = SHOW;
 
+//Movie Screen
+#define ROWS 2
+#define COLS 2
+
+#define MOVIE_WIDTH 200
+#define MOVIE_HEIGHT 300
+#define PADDING 50
+
+typedef struct{
+    SDL_Texture *image;
+    char name[50];
+} Movie;
+
+Movie movies[ROWS][COLS];
+
+//Inits
 int initSDL();
 SDL_Window* initWindow();
 SDL_Renderer* initRender(SDL_Window* window);
@@ -17,12 +37,12 @@ SDL_Texture* initImage(SDL_Window* window, SDL_Renderer* renderer, char* link);
 SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, char* text, SDL_Color textColor);
 SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, SDL_Surface* surface);
 
+//Handles
 void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask);
-void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit);
-void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight);
+void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COLS], char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit);
+void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Renderer* renderer, TTF_Font* font);
 
-void clearScreen(SDL_Renderer* renderer);
-
+//Login Screen
 void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect, SDL_Rect registerButtonBoxRect,
@@ -32,6 +52,7 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
             int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth);
 void centerLoginHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* registerButtonBoxRect, int windowWidth, int windowHeight);
 
+//Register Screen
 void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect, SDL_Rect confirmViewImageRect, SDL_Rect confirmHideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect confirmPasswordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect,
@@ -47,9 +68,17 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
             int loginButtonTextHeight, int loginButtonTextWidth);
 void centerRegisterHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, int windowWidth, int windowHeight);
 
-void renderMovieScreen(SDL_Renderer* renderer);
+//Movie Screen
+void renderMovieScreen(SDL_Renderer* renderer, TTF_Font* font, char* selectMovieText, int selectMovieWidth, int selectMovieHeight, SDL_Rect* selectMovieRect,
+                       int maxTextWidth, int offsetX, int offsetY, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Surface* selectMovieTextSurface, SDL_Texture* selectMovieTextTexture, int windowWidth, int windowHeight, int gridWidth, int gridHeight);
+void centerMovieHUD(int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Renderer* renderer, TTF_Font* font);
 
-void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
+//Time Selection Screen
+void renderTimeSelectionScreen(SDL_Renderer* renderer);
+void centerTimeSelectionHUD();
+
+//Clean all textures and surfaces
+void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
 
 int main(int argc, char* argv[]) {
     //Init Global
@@ -75,9 +104,16 @@ int main(int argc, char* argv[]) {
     char* registerButtonText = "Cadastrar";
     //Register Text Variables
     char* confirmPasswordText = "Confirmar senha:";
+    //Movie Text Variables
+    strcpy(movies[0][0].name, "Super Mario Bros - O Filme");
+    strcpy(movies[0][1].name, "Guardioes da Galaxia: Volume 3");
+    strcpy(movies[1][0].name, "Velozes e Furiosos 10");
+    strcpy(movies[1][1].name, "Avatar: O Caminho da Agua");
+    char selectMovieText[40] = "Selecione o filme que deseja assistir";
+
     SDL_Color textColor = { 52, 52, 54 };  // Black color
 
-
+    //Login and Register Screen
     //Init da imagem Cinepuc
     SDL_Texture* cinepucImage = initImage(window, renderer, "../assets/image1.jpg");
     if(!cinepucImage) {
@@ -93,6 +129,12 @@ int main(int argc, char* argv[]) {
     if(!hideImage) {
         return 1;
     }
+    //Movie Screen
+    //Init das imagens dos filmes
+    movies[0][0].image = IMG_LoadTexture(renderer, "../assets/movieImage.jpg");
+    movies[0][1].image = IMG_LoadTexture(renderer, "../assets/movieImage1.jpg");
+    movies[1][0].image = IMG_LoadTexture(renderer, "../assets/movieImage2.jpg");
+    movies[1][1].image = IMG_LoadTexture(renderer, "../assets/movieImage3.jpg");
 
     // Init a surface for each screen text
     // Login Screen
@@ -103,13 +145,17 @@ int main(int argc, char* argv[]) {
     SDL_Surface* registerButtonTextSurface = initSurface(window,renderer, font, registerButtonText, textColor);
     //Register Screen
     SDL_Surface* confirmPasswordTextSurface = initSurface(window, renderer, font, confirmPasswordText, textColor);
-    if (!loginTextSurface || !passwordTextSurface || !loginButtonTextSurface || !cancelButtonTextSurface || !registerButtonTextSurface || !confirmPasswordTextSurface) {
+    //Movie Screen
+    SDL_Surface* selectMovieTextSurface = initSurface(window, renderer, font, selectMovieText, textColor);
+
+    if (!loginTextSurface || !passwordTextSurface || !loginButtonTextSurface || !cancelButtonTextSurface || !registerButtonTextSurface || !confirmPasswordTextSurface || !selectMovieTextSurface) {
         SDL_FreeSurface(loginTextSurface);
         SDL_FreeSurface(passwordTextSurface);
         SDL_FreeSurface(loginButtonTextSurface);
         SDL_FreeSurface(cancelButtonTextSurface);
         SDL_FreeSurface(registerButtonTextSurface);
         SDL_FreeSurface(confirmPasswordTextSurface);
+        SDL_FreeSurface(selectMovieTextSurface);
         return 1;
     }
 
@@ -122,16 +168,23 @@ int main(int argc, char* argv[]) {
     SDL_Texture* registerButtonTextTexture = initTexture(window, renderer, font, registerButtonTextSurface);
     //Register Screen
     SDL_Texture* confirmPasswordTextTexture = initTexture(window, renderer, font, confirmPasswordTextSurface);
+    //Movie Screen
+    SDL_Texture* selectMovieTextTexture = SDL_CreateTextureFromSurface(renderer, selectMovieTextSurface);
     
-    if (!loginTextTexture || !passwordTextTexture || !loginButtonTextTexture || !cancelButtonTextTexture || !registerButtonTextTexture || !confirmPasswordTextTexture) {
+    if (!loginTextTexture || !passwordTextTexture || !loginButtonTextTexture || !cancelButtonTextTexture || !registerButtonTextTexture || !confirmPasswordTextTexture || !selectMovieTextTexture) {
         SDL_FreeSurface(loginTextSurface);
         SDL_FreeSurface(passwordTextSurface);
         SDL_FreeSurface(loginButtonTextSurface);
         SDL_FreeSurface(cancelButtonTextSurface);
         SDL_FreeSurface(registerButtonTextSurface);
         SDL_FreeSurface(confirmPasswordTextSurface);
+        SDL_FreeSurface(selectMovieTextSurface);
         return 1;
     }
+
+    //Get window size
+    int windowWidth, windowHeight;
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
     // Get the dimensions of the rendered text
     //Login Screen
@@ -148,9 +201,23 @@ int main(int argc, char* argv[]) {
     //Register Screen
     int confirmPasswordTextWidth = confirmPasswordTextSurface->w;
     int confirmPasswordTextHeight = confirmPasswordTextSurface->h;
+    //Movie Screen
+    int totalMovieWidth = COLS * MOVIE_WIDTH;
+    int totalMovieHeight = ROWS * MOVIE_HEIGHT;
+    int totalTextHeight = ROWS * 30;
+    int totalPaddingWidth = (COLS - 1) * PADDING;
+    int totalPaddingHeight = (ROWS - 1) * PADDING;
+    int gridWidth = totalMovieWidth + totalPaddingWidth + (341 - MOVIE_WIDTH);
+    int gridHeight = totalMovieHeight + totalPaddingHeight + totalTextHeight;
 
+    int offsetX = (windowWidth - gridWidth) / 2;
+    int offsetY = (windowHeight - gridHeight) / 2;
 
-    int windowWidth, windowHeight;
+    int textWidth, textHeight;
+    int maxTextWidth = 0; 
+
+    int selectMovieWidth, selectMovieHeight;
+    //
 
     //Login Screen
     //Set up the cinepuc image size
@@ -187,6 +254,37 @@ int main(int argc, char* argv[]) {
     //Set up the hide image size
     SDL_Rect confirmHideImageRect = { 0, 0, 24, 24 };
 
+    //Set up the movie image size
+    SDL_Rect movieRect[2][2];
+
+    //Set up the movie text size
+    SDL_Rect textRect[2][2];
+
+    //Set up the select movie text size
+    SDL_Rect selectMovieRect;
+
+    //Set up text width
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            TTF_SizeText(font, movies[row][col].name, &textWidth, &textHeight);
+
+            if (textWidth > maxTextWidth)
+            {
+                maxTextWidth = textWidth;
+            }
+
+            textRect[row][col].x = 0;
+            textRect[row][col].y = MOVIE_HEIGHT;
+            textRect[row][col].w = textWidth;
+            textRect[row][col].h = 30;
+            movieRect[row][col].x = 0;
+            movieRect[row][col].y = 0;
+            movieRect[row][col].w = MOVIE_WIDTH;
+            movieRect[row][col].h = MOVIE_HEIGHT;
+        }
+    }
 
     // Create a buffer to hold the text
     //Login Screen
@@ -232,10 +330,10 @@ int main(int argc, char* argv[]) {
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
             // Handle mouse button click
                 handleMouseClick(&event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
-                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit);
+                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit);
             }
             else if (event.type == SDL_WINDOWEVENT) {
-                handleWindowEvent(&event, window, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &cinepucImageRect, &registerButtonBoxRect, &viewImageRect, &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, windowWidth, windowHeight);
+                handleWindowEvent(&event, window, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &cinepucImageRect, &registerButtonBoxRect, &viewImageRect, &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, &selectMovieRect, movieRect, textRect, renderer, font);
             }
         }
         if (currentScreen == LOGIN_SCREEN) {
@@ -271,12 +369,16 @@ int main(int argc, char* argv[]) {
             loginButtonTextHeight, loginButtonTextWidth);
         }
         else if (currentScreen == MOVIE_SCREEN) {
-            renderMovieScreen(renderer);
+            SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            renderMovieScreen(renderer, font, selectMovieText, selectMovieWidth, selectMovieHeight, &selectMovieRect, maxTextWidth, offsetX, offsetY, movieRect, textRect, selectMovieTextSurface, selectMovieTextTexture, windowWidth, windowHeight, gridWidth, gridHeight);
+        }
+        else if (currentScreen == TIME_SELECTION_SCREEN) {
+            renderTimeSelectionScreen(renderer);
         }
     }
 
     // Clean up resources
-    cleanUp (cinepucImage, viewImage, hideImage, loginTextTexture, passwordTextTexture, loginButtonTextTexture, cancelButtonTextTexture, registerButtonTextTexture, loginInputTextTexture, passwordInputTextTexture, loginTextSurface, passwordTextSurface, loginButtonTextSurface, cancelButtonTextSurface, registerButtonTextSurface, loginInputTextSurface, passwordInputTextSurface, confirmPasswordTextSurface, confirmPasswordTextTexture, confirmPasswordInputTextSurface, confirmPasswordInputTextTexture, window, font, renderer);
+    cleanUp (cinepucImage, viewImage, hideImage, loginTextTexture, passwordTextTexture, loginButtonTextTexture, cancelButtonTextTexture, registerButtonTextTexture, loginInputTextTexture, passwordInputTextTexture, loginTextSurface, passwordTextSurface, loginButtonTextSurface, cancelButtonTextSurface, registerButtonTextSurface, loginInputTextSurface, passwordInputTextSurface, confirmPasswordTextSurface, confirmPasswordTextTexture, confirmPasswordInputTextSurface, confirmPasswordInputTextTexture, selectMovieTextTexture, selectMovieTextSurface, window, font, renderer);
     return 0;
 }
 
@@ -302,7 +404,7 @@ SDL_Window* initWindow() {
         "Cinepuc",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        800, 600,  // Set the window size
+        1200, 800,  // Set the window size
         SDL_WINDOW_RESIZABLE
     );
     if (!window) {
@@ -502,9 +604,12 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
         //
         //
     }
+    else if (currentScreen == TIME_SELECTION_SCREEN) {
+        //
+    }
 }
 
-void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit) {
+void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COLS], char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit) {
     if (event->button.button == SDL_BUTTON_LEFT) {
         int mouseX = event->button.x;
         int mouseY = event->button.y;
@@ -623,15 +728,33 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
             }
         }
         else if (currentScreen == MOVIE_SCREEN) {
-            //
-            //
-            //
+            if (mouseX >= movieRect[0][0].x && mouseX <= movieRect[0][0].x + movieRect[0][0].w &&
+                mouseY >= movieRect[0][0].y && mouseY <= movieRect[0][0].y + movieRect[0][0].h) {
+                printf("Primeiro filme.\n");
+            }
+            else if (mouseX >= movieRect[0][1].x && mouseX <= movieRect[0][1].x + movieRect[0][1].w &&
+                mouseY >= movieRect[0][1].y && mouseY <= movieRect[0][1].y + movieRect[0][1].h) {
+                printf("Segundo filme.\n");
+            }
+            else if (mouseX >= movieRect[1][0].x && mouseX <= movieRect[1][0].x + movieRect[1][0].w &&
+                mouseY >= movieRect[1][0].y && mouseY <= movieRect[1][0].y + movieRect[1][0].h) {
+                printf("Terceiro filme.\n");
+            }
+            else if (mouseX >= movieRect[1][1].x && mouseX <= movieRect[1][1].x + movieRect[1][1].w &&
+                mouseY >= movieRect[1][1].y && mouseY <= movieRect[1][1].y + movieRect[1][1].h) {
+                printf("Quarto filme.\n");
+            }
+            currentScreen = TIME_SELECTION_SCREEN;
+            printf("TIME SELECTION SCREEN\n");
+            fflush(stdout);
+        }
+        else if (currentScreen == TIME_SELECTION_SCREEN) {
             //
         }
     }
 }
 
-void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight) {
+void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Renderer* renderer, TTF_Font* font) {
     if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
         // Window resized, re-center the HUD
         SDL_GetWindowSize(window, &windowWidth, &windowHeight);
@@ -642,14 +765,12 @@ void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxR
             centerRegisterHUD(cinepucImageRect, viewImageRect, hideImageRect, confirmViewImageRect, confirmHideImageRect, loginBoxRect, passwordBoxRect, confirmPasswordBoxRect, loginButtonBoxRect, cancelButtonBoxRect, windowWidth, windowHeight);
         }
         else if (currentScreen == MOVIE_SCREEN) {
-
+            centerMovieHUD(windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, selectMovieRect, movieRect, textRect, renderer, font);
+        }
+        else if (currentScreen == TIME_SELECTION_SCREEN) {
+            //
         }
     }
-}
-
-void clearScreen(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
-    SDL_RenderClear(renderer);
 }
 
 void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
@@ -993,13 +1114,78 @@ void centerRegisterHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_
     confirmHideImageRect->y = (confirmPasswordBoxRect->y + (confirmPasswordBoxRect->h/2) - confirmHideImageRect->h/2);
 }
 
-void renderMovieScreen(SDL_Renderer* renderer) {
+void renderMovieScreen(SDL_Renderer* renderer, TTF_Font* font, char* selectMovieText, int selectMovieWidth, int selectMovieHeight, SDL_Rect* selectMovieRect,
+                       int maxTextWidth, int offsetX, int offsetY, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Surface* selectMovieTextSurface, SDL_Texture* selectMovieTextTexture, int windowWidth, int windowHeight, int gridWidth, int gridHeight) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White color
+    SDL_RenderClear(renderer);
+    TTF_SizeText(font, selectMovieText, &selectMovieWidth, &selectMovieHeight);
+    selectMovieRect->w = selectMovieWidth;
+    selectMovieRect->h = 30;
+    SDL_Color textColor = {0, 0, 0}; // Black color
+    selectMovieTextSurface = TTF_RenderText_Solid(font, selectMovieText, textColor);
+    selectMovieTextTexture = SDL_CreateTextureFromSurface(renderer, selectMovieTextSurface);
+
+    SDL_RenderCopy(renderer, selectMovieTextTexture, NULL, selectMovieRect);
+
+    SDL_DestroyTexture(selectMovieTextTexture);
+    SDL_FreeSurface(selectMovieTextSurface);
+
+    centerMovieHUD(windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, selectMovieRect, movieRect, textRect, renderer, font);
+}
+
+void centerMovieHUD(int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COLS], SDL_Rect textRect[][COLS], SDL_Renderer* renderer, TTF_Font* font) {
+    int offsetX = (windowWidth - gridWidth) / 2;
+    int offsetY = (windowHeight - gridHeight) / 2;
+
+    selectMovieRect->x = (windowWidth - selectMovieRect->w) / 2;
+    selectMovieRect->y = offsetY - selectMovieRect->h - 10;
+
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            int x;
+            if (maxTextWidth > MOVIE_WIDTH)
+            {
+                x = offsetX + col * (MOVIE_WIDTH + PADDING + (341 - MOVIE_WIDTH));
+            }
+            else
+            {
+                x = offsetX + col * (MOVIE_WIDTH + PADDING);
+            }
+            int y = offsetY + row * (MOVIE_HEIGHT + PADDING + 30);
+
+            movieRect[row][col].x = x;
+            movieRect[row][col].y = y;
+            textRect[row][col].x = x + (MOVIE_WIDTH - textRect[row][col].w) / 2; // Center horizontally within image box
+            textRect[row][col].y = y + MOVIE_HEIGHT;
+
+            SDL_RenderCopy(renderer, movies[row][col].image, NULL, &movieRect[row][col]);
+
+            SDL_Color textColor = {0, 0, 0}; // Black color
+            SDL_Surface *textSurface = TTF_RenderText_Solid(font, movies[row][col].name, textColor);
+            SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+            SDL_RenderCopy(renderer, textTexture, NULL, &textRect[row][col]);
+
+            SDL_DestroyTexture(textTexture);
+            SDL_FreeSurface(textSurface);
+        }
+    }
+    SDL_RenderPresent(renderer);
+}
+
+void renderTimeSelectionScreen(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
 }
 
-void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer) {
+void centerTimeSelectionHUD(){
+    //
+}
+
+void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer) {
     SDL_DestroyTexture(cinepucImage);
     SDL_DestroyTexture(viewImage);
     SDL_DestroyTexture(hideImage);
@@ -1021,6 +1207,12 @@ void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hid
     SDL_FreeSurface(passwordInputTextSurface);
     SDL_DestroyTexture(confirmPasswordInputTextTexture);
     SDL_FreeSurface(confirmPasswordInputTextSurface);
+    SDL_DestroyTexture(movies[0][0].image);
+    SDL_DestroyTexture(movies[0][1].image);
+    SDL_DestroyTexture(movies[1][0].image);
+    SDL_DestroyTexture(movies[1][1].image);
+    SDL_DestroyTexture(selectMovieTextTexture);
+    SDL_FreeSurface(selectMovieTextSurface);
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

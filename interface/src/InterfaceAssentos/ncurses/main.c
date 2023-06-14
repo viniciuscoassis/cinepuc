@@ -7,13 +7,14 @@
 #define HEIGHT 1            //altura da cadeira
 #define WIDTH 3             //largura da cadeira 
 #define TOTAL_WIDTH ((WIDTH + GRID_SPACING) * (CHAIR_COL_AMOUNT + 1) - GRID_SPACING)    //largura de toda a interface somada
-#define TOTAL_HEIGHT ((HEIGHT + GRID_SPACING) * (CHAIR_LINE_AMOUNT + 1 + 1) - GRID_SPACING) //altura de toda a interface somada
+#define TOTAL_HEIGHT ((HEIGHT + GRID_SPACING) * (CHAIR_LINE_AMOUNT + 3) - GRID_SPACING) //altura de toda a interface somada
 #define GRID_SPACING 1      //espaço entre as cadeiras
 #define CHAIR_LINE_AMOUNT 8 //numero de cadeiras por linha
 #define CHAIR_COL_AMOUNT 8  //numero de cadeiras por coluna
 #define CHAIR_AMOUNT (CHAIR_LINE_AMOUNT * CHAIR_COL_AMOUNT) // total de cadeiras
 #define STARTX ((COLS - TOTAL_WIDTH)/ 2)    //formula para centralizar a interface horizontalmente
 #define STARTY ((LINES - TOTAL_HEIGHT) /2)  //formula para centralizar a interface verticalmente
+#define COLOR_GRAY 9
 
 //Variaveis Globais
 WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
@@ -23,6 +24,8 @@ WINDOW *create_newwin(int height, int width, int starty, int startx); //função
 void initColors(); //função para iniciar as cores usadas no menu
 void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
 void drawTELA();  //função para criar o texto TELA
+void drawCANCEL(); //função pra criar o botão Cancelar
+void drawCONFIRM(); //função pra criar o botão Confirmar
 void mouseFunc();  //função para detectar se o mouse clicou na respectiva cadeira
 
 int main()
@@ -36,6 +39,8 @@ int main()
   initColors();
   drawChairMenu();
   drawTELA();
+  drawCANCEL();
+  drawCONFIRM();
   mouseFunc();
   
   getch();
@@ -65,9 +70,11 @@ void initColors(){
     }
     start_color();
     init_color(COLOR_WHITE, 1000, 1000, 1000);
+    init_color(COLOR_GRAY, 250, 250, 250);
     init_pair(1, COLOR_BLACK, COLOR_WHITE); //Escrita Preta e Fundo Branco
     init_pair(2, COLOR_WHITE, COLOR_GREEN); //Escrita Branca e Fundo Vermelho
     init_pair(3, COLOR_WHITE, COLOR_RED);   //Escrita Branca e Fundo Verde
+    init_pair(4, COLOR_WHITE, COLOR_GRAY);   //Escrita Branca e Fundo Cinza
     wbkgd(stdscr, COLOR_PAIR(1)); //stdscr = Fundo do Terminal
     refresh();
 }
@@ -112,9 +119,35 @@ void drawTELA(){
   TELA = newwin(1, (TOTAL_WIDTH - WIDTH - GRID_SPACING), boxY, boxX);
   mvwprintw(TELA, 0,13,"TELA");
   refresh();
-  wbkgd(TELA, COLOR_PAIR(3) | A_BOLD);
+  wbkgd(TELA, COLOR_PAIR(4) | A_BOLD);
   wrefresh(TELA);
-} 
+}
+
+void drawCANCEL(){
+  WINDOW *CANCEL;
+  int boxX, boxY;
+
+  boxX = STARTX + (WIDTH + GRID_SPACING) * 1;  //boxX = primeira coluna da interface (1)
+  boxY = STARTY + (HEIGHT + GRID_SPACING) * 10; //boxY = ultima linha da interface (9)
+  CANCEL = newwin(1, (TOTAL_WIDTH - WIDTH - GRID_SPACING) / 2, boxY, boxX);
+  mvwprintw(CANCEL, 0,4,"Cancelar");
+  refresh();
+  wbkgd(CANCEL, COLOR_PAIR(4) | A_BOLD);
+  wrefresh(CANCEL);
+}
+
+void drawCONFIRM(){
+  WINDOW *CONFIRM;
+  int boxX, boxY;
+
+  boxX = STARTX + (WIDTH + GRID_SPACING) * 1 + ((TOTAL_WIDTH - WIDTH - GRID_SPACING) / 2) + 1;  //boxX = primeira coluna da interface (1)
+  boxY = STARTY + (HEIGHT + GRID_SPACING) * 10; //boxY = ultima linha da interface (9)
+  CONFIRM = newwin(1, (TOTAL_WIDTH - WIDTH - GRID_SPACING) / 2, boxY, boxX);
+  mvwprintw(CONFIRM, 0,3,"Confirmar");
+  refresh();
+  wbkgd(CONFIRM, COLOR_PAIR(4) | A_BOLD);
+  wrefresh(CONFIRM);
+}
 
 void mouseFunc(){
   int windowCoordX, windowCoordY;
@@ -131,8 +164,17 @@ void mouseFunc(){
                     wbkgd(my_win[i], COLOR_PAIR(3)); //mudar cadeira para vermelho
                     wrefresh(my_win[i]);
                   }
-                }              
-                //break;
+                }
+                if(event.x >= 26 && event.x <= 26 + 14 && event.y == 21){
+                    mvwprintw(stdscr, 0, 0, "ok");
+                    refresh();
+                    wrefresh(stdscr);
+                }
+                if(event.x >= 42 && event.x <= 42 + 14 && event.y == 21){
+                    mvwprintw(stdscr, 0, 0, "ok");
+                    refresh();
+                    wrefresh(stdscr);
+                }
             }
         }
     }

@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "sqlite_utils.h"
-// #include <Windows.h>
+#include <Windows.h>
 
 typedef struct usuario {
     char nome[50];
@@ -27,10 +26,6 @@ int main() {
     int escolha = 0;
     char email[50];
     char senha[20];
-    initialize_sqlite();
-       const char* query = "INSERT INTO Usuario (nome, email, senha) VALUES ('vinicius', 'vini@gmail.com', 123321)";
-    execute_query(query);
-
 
     while (escolha != 3) {
         printf("===== MENU =====\n");
@@ -122,8 +117,8 @@ int main() {
 
 void cadastrarUsuario(Usuario* usuario) {
     printf("Digite o nome: ");
-    scanf("%s", usuario->nome);
-    getchar();
+    fgets(usuario->nome, sizeof(usuario->nome), stdin);
+    usuario->nome[strcspn(usuario->nome, "\n")] = '\0';
 
     printf("Digite a idade: ");
     scanf("%d", &usuario->idade);
@@ -143,7 +138,7 @@ void cadastrarUsuario(Usuario* usuario) {
 
 void salvarUsuarioArquivo(Usuario usuario) {
     // Abre o arquivo para salvar dados
-    FILE* arquivo = fopen("dados.txt", "a");
+    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -156,7 +151,7 @@ void salvarUsuarioArquivo(Usuario usuario) {
 
 void lerUsuarios() {
     // Abre o arquivo para ler os dados
-    FILE* arquivo = fopen("dados.txt", "r");
+    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -177,7 +172,7 @@ void lerUsuarios() {
 }
 
 int validarUsuario(const char email[50], const char senha[20]) {
-    FILE* arquivo = fopen("dados.txt", "r");
+    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return 0;

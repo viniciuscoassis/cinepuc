@@ -24,7 +24,7 @@ void reservarCadeiraFilme(int idFilme) {
     char nomeArquivo[20];
     switch (idFilme) {
         case 1:
-            strcpy(nomeArquivo, "C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/protCadeiras.c");
+            strcpy(nomeArquivo, "C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadeirasAVT.bin");
             break;
         case 2:
             strcpy(nomeArquivo, "./cadeirasVFX.bin");
@@ -55,7 +55,7 @@ void reservaCadeira(FILE* arquivo, int idFilme, int idSessao, int numero) {
     fseek(arquivo, 0, SEEK_SET); // Define o ponteiro do arquivo no início
     Cadeira cadeira;
 
-    while (fread(&cadeira, sizeof(Cadeira), 1, arquivo) == 1) {
+    while (fscanf(arquivo, "%d,%d,%d,%d,%[^,],%[^\n]\n", &cadeira.idFilme, &cadeira.idSessao, &cadeira.numero, &cadeira.status, cadeira.comprador) != EOF) {
         if (cadeira.idFilme == idFilme && cadeira.idSessao == idSessao && cadeira.numero == numero) {
             if (cadeira.status == 0) {
                 cadeira.status = 1; // Altera o status para 1

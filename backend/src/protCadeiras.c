@@ -55,7 +55,12 @@ void reservaCadeira(FILE* arquivo, int idFilme, int idSessao, int numero) {
     fseek(arquivo, 0, SEEK_SET); // Define o ponteiro do arquivo no início
     Cadeira cadeira;
 
-    while (fscanf(arquivo, "%d,%d,%d,%d,%[^,],%[^\n]\n", &cadeira.idFilme, &cadeira.idSessao, &cadeira.numero, &cadeira.status, cadeira.comprador) != EOF) {
+    while (fread(&cadeira, sizeof(Cadeira), 1, arquivo) == 1) {
+        printf("ID do Filme: %d\n", cadeira.idFilme);
+        printf("ID da Sessão: %d\n", cadeira.idSessao);
+        printf("Número da Cadeira: %d\n", cadeira.numero);
+        printf("Status: %d\n", cadeira.status);
+        printf("Comprador: %s\n\n", cadeira.comprador);
         if (cadeira.idFilme == idFilme && cadeira.idSessao == idSessao && cadeira.numero == numero) {
             if (cadeira.status == 0) {
                 cadeira.status = 1; // Altera o status para 1

@@ -29,8 +29,6 @@ void salvarUsuarioArquivo(char email[50], char senha[20]) {
     // Escreve a struct no arquivo
     fwrite(&usuario, sizeof(Usuario), 1, arquivo);
 
-    // Escreve no arquivo
-    fprintf(arquivo, "%s,%s\n", email, senha);
     fclose(arquivo);
 }
 

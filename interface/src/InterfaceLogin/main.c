@@ -633,7 +633,9 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
                 printf("Entered login: %s\n", loginInputText);
                 printf("Entered password: %s\n", passwordInputText);
                 fflush(stdout);
-                currentScreen = MOVIE_SCREEN;
+                if(validarUsuario(loginInputText, passwordInputText)){
+                    currentScreen = MOVIE_SCREEN;
+                }
             }
         }
         else if (event->key.keysym.sym == SDLK_TAB) {
@@ -683,6 +685,7 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
                 printf("Entered confirm password: %s\n", confirmPasswordInputText);
                 fflush(stdout);
                 if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
+                    salvarUsuarioArquivo(loginInputText, passwordInputText);
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     showPassword = SHOW;
@@ -760,7 +763,9 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
                 printf("Entered login: %s\n", loginInputText);
                 printf("Entered password: %s\n", passwordInputText);
                 fflush(stdout);
-                currentScreen = MOVIE_SCREEN;
+                if(validarUsuario(loginInputText, passwordInputText)){
+                    currentScreen = MOVIE_SCREEN;
+                }
             }
             //Check if the click is within the register button box
             else if (mouseX >= registerButtonBoxRect->x && mouseX <= registerButtonBoxRect->x + registerButtonBoxRect->w &&

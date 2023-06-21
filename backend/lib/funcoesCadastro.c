@@ -21,6 +21,14 @@ void salvarUsuarioArquivo(char email[50], char senha[20]) {
         return;
     }
 
+    // Cria uma struct Usuario e preenche os campos com os dados
+    Usuario usuario;
+    strcpy(usuario.email, email);
+    strcpy(usuario.senha, senha);
+
+    // Escreve a struct no arquivo
+    fwrite(&usuario, sizeof(Usuario), 1, arquivo);
+
     // Escreve no arquivo
     fprintf(arquivo, "%s,%s\n", email, senha);
     fclose(arquivo);
@@ -53,14 +61,14 @@ int validarUsuario(const char email[50], const char senha[20]) {
     }
 
     Usuario usuario;
-
-    while (fscanf(arquivo, "%[^,],%[^,]\n", usuario.email, usuario.senha) != EOF) {
+    rewind(arquivo);
+    while (fread(&usuario, sizeof(Usuario), 1, arquivo) == 1) {
         if (strcmp(usuario.email, email) == 0 && strcmp(usuario.senha, senha) == 0) {
+            printf("1");
             fclose(arquivo);
             return 1; // Validacao bem-sucedida
         }
     }
-
     fclose(arquivo);
     return 0; // Validacao falhou
 }

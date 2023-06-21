@@ -13,22 +13,22 @@ void cadastrarUsuario(Usuario* usuario) {
     getchar();
 }
 
-void salvarUsuarioArquivo(Usuario usuario) {
+void salvarUsuarioArquivo(char email[50], char senha[20]) {
     // Abre o arquivo para salvar dados
-    FILE* arquivo = fopen("./src/cadPessoa.bin", "a");
+    FILE* arquivo = fopen("backend/src/cadPessoa.bin", "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
     }
 
     // Escreve no arquivo
-    fprintf(arquivo, "%s,%s\n", usuario.email, usuario.senha);
+    fprintf(arquivo, "%s,%s\n", email, senha);
     fclose(arquivo);
 }
 
 void lerUsuarios() {
     // Abre o arquivo para ler os dados
-    FILE* arquivo = fopen("./src/cadPessoa.bin", "rb");
+    FILE* arquivo = fopen("backend/src/cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -46,7 +46,7 @@ void lerUsuarios() {
 }
 
 int validarUsuario(const char email[50], const char senha[20]) {
-    FILE* arquivo = fopen("./src/cadPessoa.bin", "rb");
+    FILE* arquivo = fopen("backend/src/cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return 0;

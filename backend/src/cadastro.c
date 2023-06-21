@@ -3,15 +3,6 @@
   Descrição: Este programa permite cadastrar usuários, fazer login, escolher um filme para assistir e exibir uma mensagem informando o filme escolhido.
 */
 
-/*
-    Para executar:
-        -Abra o terminal na pasta backend
-        -Compile:
-            gcc src/cadastro.c lib/funcoesCadastro.c -I include -o cadastro
-        -Rode:
-            ./cadastro
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +32,7 @@ int main() {
                 while (1) {
                     Usuario novoUsuario;
                     cadastrarUsuario(&novoUsuario);
-                    salvarUsuarioArquivo(novoUsuario);
+                    salvarUsuarioArquivo(novoUsuario.email, novoUsuario.senha);
                     printf("Usuario cadastrado com sucesso.\n");
 
                     printf("Deseja cadastrar outro usuario? (1 - Sim, 0 - Nao): ");

@@ -1,10 +1,21 @@
-//sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libncurses5-dev
-//./main
+/*
+Para baixar as dependencias (Linux):
+    sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libncurses5-dev
+    
+Para rodar o código:
+    -Abra o terminal na pasta cinepuc
+    -Compile o código:
+        gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+    -Rode o código:
+        ./CINEMA
+*/
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
 #include <curses.h>
 #include <string.h>
+#include "../include/cadastro.h"
 
 //Login/Register Screen
 #define MAX_TEXT_LENGTH 50
@@ -154,26 +165,26 @@ int main(int argc, char* argv[]) {
 
     //Login and Register Screen
     //Init da imagem Cinepuc
-    SDL_Texture* cinepucImage = initImage(window, renderer, "../assets/image1.jpg");
+    SDL_Texture* cinepucImage = initImage(window, renderer, "interface/src/assets/image1.jpg");
     if(!cinepucImage) {
         return 1;
     }
     //Init da imagem do Olho
-    SDL_Texture* viewImage = initImage(window, renderer, "../assets/view.png");
+    SDL_Texture* viewImage = initImage(window, renderer, "interface/src/assets/view.png");
     if(!viewImage) {
         return 1;
     }
     //Init da imagem do Olho "Fechado"
-    SDL_Texture* hideImage = initImage(window, renderer, "../assets/hide.png");
+    SDL_Texture* hideImage = initImage(window, renderer, "interface/src/assets/hide.png");
     if(!hideImage) {
         return 1;
     }
     //Movie Screen
     //Init das imagens dos filmes
-    movies[0][0].image = IMG_LoadTexture(renderer, "../assets/movieImage.jpg");
-    movies[0][1].image = IMG_LoadTexture(renderer, "../assets/movieImage1.jpg");
-    movies[1][0].image = IMG_LoadTexture(renderer, "../assets/movieImage2.jpg");
-    movies[1][1].image = IMG_LoadTexture(renderer, "../assets/movieImage3.jpg");
+    movies[0][0].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage.jpg");
+    movies[0][1].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage1.jpg");
+    movies[1][0].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage2.jpg");
+    movies[1][1].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage3.jpg");
 
     // Init a surface for each screen text
     // Login Screen
@@ -547,7 +558,7 @@ SDL_Renderer* initRender(SDL_Window* window) {
 }
 
 TTF_Font* initFont(SDL_Window* window, SDL_Renderer* renderer) {
-    TTF_Font* font = TTF_OpenFont("../assets/arial.ttf", 24);  // Replace with your font file path
+    TTF_Font* font = TTF_OpenFont("interface/src/assets/arial.ttf", 24);  // Replace with your font file path
     if (!font) {
         SDL_Log("Failed to load font: %s", TTF_GetError());
         SDL_DestroyRenderer(renderer);
@@ -812,6 +823,7 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
                 printf("Entered confirm password: %s\n", confirmPasswordInputText);
                 fflush(stdout);
                 if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
+                    salvarUsuarioArquivo(loginInputText, passwordInputText);
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     showPassword = SHOW;

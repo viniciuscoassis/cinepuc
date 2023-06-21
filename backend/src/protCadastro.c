@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Windows.h>
+//#include <Windows.h>
 
 typedef struct usuario {
     char nome[50];
@@ -138,7 +138,7 @@ void cadastrarUsuario(Usuario* usuario) {
 
 void salvarUsuarioArquivo(Usuario usuario) {
     // Abre o arquivo para salvar dados
-    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "a");
+    FILE* arquivo = fopen("./cadPessoa.bin", "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -151,7 +151,7 @@ void salvarUsuarioArquivo(Usuario usuario) {
 
 void lerUsuarios() {
     // Abre o arquivo para ler os dados
-    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "rb");
+    FILE* arquivo = fopen("./cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return;
@@ -172,7 +172,7 @@ void lerUsuarios() {
 }
 
 int validarUsuario(const char email[50], const char senha[20]) {
-    FILE* arquivo = fopen("C:/Users/fefem/OneDrive/Documentos/Faculdade/cinepuc/backend/src/cadPessoa.bin", "rb");
+    FILE* arquivo = fopen("./cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
         return 0;

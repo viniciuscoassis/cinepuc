@@ -1,5 +1,4 @@
-// sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev
-// gcc -o main main.c -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+//sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libncurses5-dev
 //./main
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>

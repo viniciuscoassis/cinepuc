@@ -72,7 +72,7 @@ O projeto será dividido em dois grupos BACKEND:(Vinicius Penido, Felipe Mareca,
 
 - ~~Pitch de apresentação
 - ~~Construção do readme.md
-- Implementar biblioteca SQLite
+- Implementar Arquivos
 - Implementar cadastro
 - Implementar login
 - Implementar lista de assentos

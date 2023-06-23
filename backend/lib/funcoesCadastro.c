@@ -13,12 +13,15 @@ void cadastrarUsuario(Usuario* usuario) {
     getchar();
 }
 
-void salvarUsuarioArquivo(char email[50], char senha[20]) {
+int salvarUsuarioArquivo(char email[50], char senha[20]) {
+    if(verificaUsuario(email) == 0){
+        return 0;
+    }
     // Abre o arquivo para salvar dados
     FILE* arquivo = fopen("backend/src/cadPessoa.bin", "a");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
-        return;
+        return -1;
     }
 
     // Cria uma struct Usuario e preenche os campos com os dados
@@ -30,6 +33,7 @@ void salvarUsuarioArquivo(char email[50], char senha[20]) {
     fwrite(&usuario, sizeof(Usuario), 1, arquivo);
 
     fclose(arquivo);
+    return 1;
 }
 
 void lerUsuarios() {
@@ -42,7 +46,7 @@ void lerUsuarios() {
 
     Usuario usuario;
 
-    while (fscanf(arquivo, "%[^,],%[^,]\n", usuario.email, usuario.senha) != EOF) {
+    while (fread(&usuario, sizeof(Usuario), 1, arquivo) == 1) {
         printf("Email: %s\n", usuario.email);
         printf("Senha: %s\n", usuario.senha);
         printf("\n");
@@ -69,4 +73,25 @@ int validarUsuario(const char email[50], const char senha[20]) {
     }
     fclose(arquivo);
     return 0; // Validacao falhou
+}
+
+int verificaUsuario(char email[50]) {
+    // Abre o arquivo para ler os dados
+    FILE* arquivo = fopen("backend/src/cadPessoa.bin", "rb");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return -1;
+    }
+
+    Usuario usuario;
+    //Loop para ver todos os usuarios
+    while (fread(&usuario, sizeof(Usuario), 1, arquivo) == 1) {
+        //Condicao para ver se o email ja existe
+        if(strcmp(usuario.email, email) == 0){
+            return 0;
+        }
+    } 
+
+    fclose(arquivo);
+    return 1;
 }

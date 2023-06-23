@@ -25,6 +25,13 @@ enum { SHOW, HIDE } showPassword = SHOW;
 enum { SHOW_CONFIRM, HIDE_CONFIRM  } showConfirmPassword = SHOW_CONFIRM;
 enum { CLEAR, DONT_CLEAR } clearInput = DONT_CLEAR;
 
+enum boxColor { RED, BLACK };
+typedef enum boxColor boxColor;
+
+typedef struct {
+    boxColor color;
+} Box;
+
 //Movie Screen
 #define ROWS 2
 #define COL 2
@@ -65,8 +72,8 @@ SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
 SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, SDL_Surface* surface);
 
 //Handles
-void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask);
-void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit);
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
 void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font);
 
 //Login Screen
@@ -76,7 +83,7 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
             SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* registerButtonTextTexture,
             SDL_Surface* loginInputTextSurface, SDL_Texture* loginInputTextTexture, SDL_Surface* passwordInputTextSurface, SDL_Texture* passwordInputTextTexture,
             char* passwordInputText, char* loginInputText, int loginTextHeight, int loginTextWidth, int passwordTextHeight, int passwordTextWidth, char* passwordMask,
-            int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth);
+            int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth, Box* loginBoxColor, Box* passwordBoxColor);
 void centerLoginHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* registerButtonBoxRect, int windowWidth, int windowHeight);
 
 //Register Screen
@@ -92,7 +99,8 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
             int passwordTextHeight, int passwordTextWidth, char* passwordMask,
             int confirmPasswordTextHeight, int confirmPasswordTextWidth, char* confirmPasswordMask,
             int cancelButtonTextHeight, int cancelButtonTextWidth,
-            int loginButtonTextHeight, int loginButtonTextWidth);
+            int loginButtonTextHeight, int loginButtonTextWidth,
+            Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
 void centerRegisterHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, int windowWidth, int windowHeight);
 
 //Movie Screen
@@ -414,6 +422,16 @@ int main(int argc, char* argv[]) {
     SDL_Surface* confirmPasswordInputTextSurface = NULL;
     SDL_Texture* confirmPasswordInputTextTexture = NULL;
 
+    //Cor da caixa de login
+    Box loginBoxColor;
+    loginBoxColor.color = BLACK;
+    //Cor da caixa de senha
+    Box passwordBoxColor;
+    passwordBoxColor.color = BLACK;
+    //Cor da caixa de confirmar senha
+    Box confirmPasswordBoxColor;
+    confirmPasswordBoxColor.color = BLACK;
+
     // Main loop
     SDL_Event event;
     int quit = 0;
@@ -425,12 +443,12 @@ int main(int argc, char* argv[]) {
             }
             else if (event.type == SDL_KEYDOWN || event.type == SDL_TEXTINPUT) {
                 // Handle keyboard input
-                handleKeyboardInput(&event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask);
+                handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
             // Handle mouse button click
-                handleMouseClick(&event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
-                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit);
+                handleMouseClick(renderer, &event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
+                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
             }
             else if (event.type == SDL_WINDOWEVENT) {
                 handleWindowEvent(&event, window, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &cinepucImageRect, &registerButtonBoxRect, &viewImageRect, &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, &selectMovieRect, movieRect, textRect, renderer, font);
@@ -452,7 +470,7 @@ int main(int argc, char* argv[]) {
             passwordTextHeight, passwordTextWidth, passwordMask,
             cancelButtonTextHeight, cancelButtonTextWidth,
             loginButtonTextHeight, loginButtonTextWidth,
-            registerButtonTextHeight, registerButtonTextWidth);
+            registerButtonTextHeight, registerButtonTextWidth, &loginBoxColor, &passwordBoxColor);
         }
         else if (currentScreen == REGISTER_SCREEN) {
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
@@ -469,7 +487,7 @@ int main(int argc, char* argv[]) {
             passwordTextHeight, passwordTextWidth, passwordMask,
             confirmPasswordTextHeight, confirmPasswordTextWidth, confirmPasswordMask,
             cancelButtonTextHeight, cancelButtonTextWidth,
-            loginButtonTextHeight, loginButtonTextWidth);
+            loginButtonTextHeight, loginButtonTextWidth, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
         }
         else if (currentScreen == MOVIE_SCREEN) {
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
@@ -612,7 +630,7 @@ SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
     return texture;
 }
 
-void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask) {
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
     if (currentScreen == LOGIN_SCREEN) {
         if (event->key.keysym.sym == SDLK_BACKSPACE) {
             // Remove the last character if backspace is pressed
@@ -626,16 +644,14 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
                 }
             }
         }
+        // Handle the Enter key
         else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
-            // Handle the Enter key
-            if (activeField == PASSWORD_FIELD) {
-                // Handle the password input logic here
-                printf("Entered login: %s\n", loginInputText);
-                printf("Entered password: %s\n", passwordInputText);
-                fflush(stdout);
-                if(validarUsuario(loginInputText, passwordInputText)){
-                    currentScreen = MOVIE_SCREEN;
-                }
+            // Handle the password input logic here
+            printf("Entered login: %s\n", loginInputText);
+            printf("Entered password: %s\n", passwordInputText);
+            fflush(stdout);
+            if(validarUsuario(loginInputText, passwordInputText)){
+                currentScreen = MOVIE_SCREEN;
             }
         }
         else if (event->key.keysym.sym == SDLK_TAB) {
@@ -676,20 +692,29 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
                 }
             }
         }
+        // Handle the Enter key
         else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
-            // Handle the Enter key
-            if (activeField == PASSWORD_FIELD) {
-                // Handle the password input logic here
-                printf("Entered login: %s\n", loginInputText);
-                printf("Entered password: %s\n", passwordInputText);
-                printf("Entered confirm password: %s\n", confirmPasswordInputText);
-                fflush(stdout);
-                if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
-                    salvarUsuarioArquivo(loginInputText, passwordInputText);
+            // Handle the password input logic here
+            printf("Entered login: %s\n", loginInputText);
+            printf("Entered password: %s\n", passwordInputText);
+            printf("Entered confirm password: %s\n", confirmPasswordInputText);
+            fflush(stdout);
+            if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
+                int verificar = salvarUsuarioArquivo(loginInputText, passwordInputText);
+                if(verificar == 0){
+                    printf("Usuario repetido.\n");
+                    loginBoxColor->color = RED;
+                }
+                else if(verificar == 1){
+                    printf("Usuario cadastrado com sucesso.\n");
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     showPassword = SHOW;
                 }
+            }
+            else{
+                passwordBoxColor->color = RED;
+                confirmPasswordBoxColor->color = RED;
             }
         }
         else if (event->key.keysym.sym == SDLK_TAB) {
@@ -726,7 +751,7 @@ void handleKeyboardInput(SDL_Event* event, SDL_Window* window, char* loginInputT
     }
 }
 
-void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit) {
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
     if (event->button.button == SDL_BUTTON_LEFT) {
         int mouseX = event->button.x;
         int mouseY = event->button.y;
@@ -782,6 +807,7 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
             if (mouseX >= loginBoxRect->x && mouseX <= loginBoxRect->x + loginBoxRect->w &&
                 mouseY >= loginBoxRect->y && mouseY <= loginBoxRect->y + loginBoxRect->h) {
                 activeField = LOGIN_FIELD;
+                loginBoxColor->color = BLACK;
             }
             //Check if the click is within the view Image
             else if (mouseX >= viewImageRect->x && mouseX <= viewImageRect->x + viewImageRect->w &&
@@ -807,11 +833,13 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
             else if (mouseX >= passwordBoxRect->x && mouseX <= passwordBoxRect->x + passwordBoxRect->w &&
                 mouseY >= passwordBoxRect->y && mouseY <= passwordBoxRect->y + passwordBoxRect->h) {
                 activeField = PASSWORD_FIELD;
+                passwordBoxColor->color = BLACK;
             }
             // Check if the click is within the confirm password box
             else if (mouseX >= confirmPasswordBoxRect->x && mouseX <= confirmPasswordBoxRect->x + confirmPasswordBoxRect->w &&
                 mouseY >= confirmPasswordBoxRect->y && mouseY <= confirmPasswordBoxRect->y + confirmPasswordBoxRect->h) {
                 activeField = CONFIRM_FIELD;
+                confirmPasswordBoxColor->color = BLACK;
             }
             // Check if the click in within the cancel button box
             else if (mouseX >= cancelButtonBoxRect->x && mouseX <= cancelButtonBoxRect->x + cancelButtonBoxRect->w &&
@@ -823,15 +851,27 @@ void handleMouseClick(SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwo
             //Check if the click is within the confirm button box
             else if (mouseX >= loginButtonBoxRect->x && mouseX <= loginButtonBoxRect->x + loginButtonBoxRect->w &&
                 mouseY >= loginButtonBoxRect->y && mouseY <= loginButtonBoxRect->y + loginButtonBoxRect->h) {
+                // Handle the password input logic here
                 printf("Entered login: %s\n", loginInputText);
                 printf("Entered password: %s\n", passwordInputText);
                 printf("Entered confirm password: %s\n", confirmPasswordInputText);
                 fflush(stdout);
                 if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
-                    salvarUsuarioArquivo(loginInputText, passwordInputText);
-                    currentScreen = LOGIN_SCREEN;
-                    clearInput = CLEAR;
-                    showPassword = SHOW;
+                    int verificar = salvarUsuarioArquivo(loginInputText, passwordInputText);
+                    if(verificar == 0){
+                        printf("Usuario repetido.\n");
+                        loginBoxColor->color = RED;
+                    }
+                    else if(verificar == 1){
+                        printf("Usuario cadastrado com sucesso.\n");
+                        currentScreen = LOGIN_SCREEN;
+                        clearInput = CLEAR;
+                        showPassword = SHOW;
+                    }
+                }
+                else{
+                    passwordBoxColor->color = RED;
+                    confirmPasswordBoxColor->color = RED;
                 }
             }
         }
@@ -923,7 +963,7 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
             SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* registerButtonTextTexture,
             SDL_Surface* loginInputTextSurface, SDL_Texture* loginInputTextTexture, SDL_Surface* passwordInputTextSurface, SDL_Texture* passwordInputTextTexture,
             char* passwordInputText, char* loginInputText, int loginTextHeight, int loginTextWidth, int passwordTextHeight, int passwordTextWidth, char* passwordMask,
-            int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth) {
+            int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth, Box* loginBoxColor, Box* passwordBoxColor) {
     // Clear the screen
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
     SDL_RenderClear(renderer);
@@ -935,11 +975,18 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
         strcpy(passwordMask, "");
         activeField = LOGIN_FIELD;
         showPassword = SHOW;
+        loginBoxColor->color = BLACK;
+        passwordBoxColor->color = BLACK;
         clearInput = DONT_CLEAR;
     }
 
     // Render the login box border
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    if(loginBoxColor->color == BLACK){
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    }
+    else if(loginBoxColor->color == RED){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+    }
     SDL_RenderDrawRect(renderer, &loginBoxRect);
 
     //Render the cinepuc image
@@ -983,7 +1030,12 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
     }
 
     // Render the password box border
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    if(passwordBoxColor->color == BLACK){
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    }
+    else if(passwordBoxColor->color == RED){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+    }
     SDL_RenderDrawRect(renderer, &passwordBoxRect);
 
     // Render the password text
@@ -1083,7 +1135,8 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
             int passwordTextHeight, int passwordTextWidth, char* passwordMask,
             int confirmPasswordTextHeight, int confirmPasswordTextWidth, char* confirmPasswordMask,
             int cancelButtonTextHeight, int cancelButtonTextWidth,
-            int loginButtonTextHeight, int loginButtonTextWidth) {
+            int loginButtonTextHeight, int loginButtonTextWidth,
+            Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
     // Clear the screen
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
     SDL_RenderClear(renderer);
@@ -1098,11 +1151,19 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
         activeField = LOGIN_FIELD;
         showPassword = SHOW;
         showConfirmPassword = SHOW_CONFIRM;
+        loginBoxColor->color = BLACK;
+        passwordBoxColor->color = BLACK;
+        confirmPasswordBoxColor->color = BLACK;
         clearInput = DONT_CLEAR;
     }
 
     // Render the login box border
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    if(loginBoxColor->color == BLACK){
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    }
+    else if(loginBoxColor->color == RED){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+    }
     SDL_RenderDrawRect(renderer, &loginBoxRect);
 
     //Render the cinepuc image
@@ -1155,10 +1216,20 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
     }
 
     // Render the password box border
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    if(passwordBoxColor->color == BLACK){
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    }
+    else if(passwordBoxColor->color == RED){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+    }
     SDL_RenderDrawRect(renderer, &passwordBoxRect);
     // Render the confirm password box border
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    if(confirmPasswordBoxColor->color == BLACK){
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    }
+    else if(confirmPasswordBoxColor->color == RED){
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+    }
     SDL_RenderDrawRect(renderer, &confirmPasswordBoxRect);
 
     // Render the password text

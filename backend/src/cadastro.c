@@ -14,11 +14,12 @@ int main() {
     char email[50];
     char senha[20];
 
-    while (escolha != 3) {
+    while (escolha != 4) {
         printf("===== MENU =====\n");
         printf("1. Cadastrar usuarios\n");
         printf("2. Fazer login\n");
-        printf("3. Sair\n");
+        printf("3. Ler usuarios\n");
+        printf("4. Sair\n");
         printf("Digite a opcao desejada: ");
         scanf("%d", &escolha);
         getchar();
@@ -32,8 +33,13 @@ int main() {
                 while (1) {
                     Usuario novoUsuario;
                     cadastrarUsuario(&novoUsuario);
-                    salvarUsuarioArquivo(novoUsuario.email, novoUsuario.senha);
-                    printf("Usuario cadastrado com sucesso.\n");
+                    int verificar = salvarUsuarioArquivo(novoUsuario.email, novoUsuario.senha);
+                    if(verificar == 0){
+                        printf("Usuario repetido.\n");
+                    }
+                    else if(verificar == 1){
+                        printf("Usuario cadastrado com sucesso.\n");
+                    }
 
                     printf("Deseja cadastrar outro usuario? (1 - Sim, 0 - Nao): ");
                     int cadastrarOutro;
@@ -88,6 +94,9 @@ int main() {
                 }
                 break;
             case 3:
+                lerUsuarios();
+                break;
+            case 4:
                 // Sair
                 printf("Encerrando o programa.\n");
                 break;

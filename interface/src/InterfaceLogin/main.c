@@ -18,6 +18,15 @@ Para rodar o código:
 #include <string.h>
 #include "../include/cadastro.h"
 
+// Estrutura para armazenar os dados no frontend
+typedef struct {
+    char usuarioLogado[50];
+    int idFilme;
+    int idSessao;
+} dadosFrontEnd;
+
+dadosFrontEnd dados;
+
 //TELA LOGIN/REGISTRO
 //Flags para determinar a tela, o campo de escrita ou a possibidade de esconder/visualizar a senha.
 #define MAX_TEXT_LENGTH 50
@@ -736,6 +745,7 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
             if(validarUsuario(loginInputText, passwordInputText)){ //funcao do backend
                 //se o usuario for validado segue para a tela de selecionar filmes
                 currentScreen = MOVIE_SCREEN;
+                strcpy(dados.usuarioLogado, loginInputText);
             }
         }
         //TAB
@@ -886,6 +896,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
                 fflush(stdout);
                 if(validarUsuario(loginInputText, passwordInputText)){
                     currentScreen = MOVIE_SCREEN;
+                    strcpy(dados.usuarioLogado, loginInputText);
                 }
             }
             //Check if the click is within the register button box
@@ -974,28 +985,28 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
         else if (currentScreen == MOVIE_SCREEN) {
             if (mouseX >= movieRect[0][0].x && mouseX <= movieRect[0][0].x + movieRect[0][0].w &&
                 mouseY >= movieRect[0][0].y && mouseY <= movieRect[0][0].y + movieRect[0][0].h) {
-                printf("Primeiro filme.\n");
+                dados.idFilme = 1;
                 currentScreen = TIME_SELECTION_SCREEN;
                 printf("TIME SELECTION SCREEN\n");
                 fflush(stdout);
             }
             else if (mouseX >= movieRect[0][1].x && mouseX <= movieRect[0][1].x + movieRect[0][1].w &&
                 mouseY >= movieRect[0][1].y && mouseY <= movieRect[0][1].y + movieRect[0][1].h) {
-                printf("Segundo filme.\n");
+                dados.idFilme = 2;
                 currentScreen = TIME_SELECTION_SCREEN;
                 printf("TIME SELECTION SCREEN\n");
                 fflush(stdout);
             }
             else if (mouseX >= movieRect[1][0].x && mouseX <= movieRect[1][0].x + movieRect[1][0].w &&
                 mouseY >= movieRect[1][0].y && mouseY <= movieRect[1][0].y + movieRect[1][0].h) {
-                printf("Terceiro filme.\n");
+                dados.idFilme = 3;
                 currentScreen = TIME_SELECTION_SCREEN;
                 printf("TIME SELECTION SCREEN\n");
                 fflush(stdout);
             }
             else if (mouseX >= movieRect[1][1].x && mouseX <= movieRect[1][1].x + movieRect[1][1].w &&
                 mouseY >= movieRect[1][1].y && mouseY <= movieRect[1][1].y + movieRect[1][1].h) {
-                printf("Quarto filme.\n");
+                dados.idFilme = 4;
                 currentScreen = TIME_SELECTION_SCREEN;
                 printf("TIME SELECTION SCREEN\n");
                 fflush(stdout);
@@ -1004,25 +1015,25 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
         else if (currentScreen == TIME_SELECTION_SCREEN) {
             if(mouseX >= firstTimeButtonBoxRect->x && mouseX <= firstTimeButtonBoxRect->x + firstTimeButtonBoxRect->w &&
                 mouseY >= firstTimeButtonBoxRect->y && mouseY <= firstTimeButtonBoxRect->y + firstTimeButtonBoxRect->h){
-                    printf("Primeiro Botão\n");
+                    dados.idSessao = 1;
                     fflush(stdout);
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
             else if(mouseX >= secondTimeButtonBoxRect->x && mouseX <= secondTimeButtonBoxRect->x + secondTimeButtonBoxRect->w &&
                 mouseY >= secondTimeButtonBoxRect->y && mouseY <= secondTimeButtonBoxRect->y + secondTimeButtonBoxRect->h){
-                    printf("Segundo Botão\n");
+                    dados.idSessao = 2;
                     fflush(stdout);
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
             else if(mouseX >= thirdTimeButtonBoxRect->x && mouseX <= thirdTimeButtonBoxRect->x + thirdTimeButtonBoxRect->w &&
                 mouseY >= thirdTimeButtonBoxRect->y && mouseY <= thirdTimeButtonBoxRect->y + thirdTimeButtonBoxRect->h){
-                    printf("Terceiro Botão\n");
+                    dados.idSessao = 3;
                     fflush(stdout);
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
             else if(mouseX >= fourthTimeButtonBoxRect->x && mouseX <= fourthTimeButtonBoxRect->x + fourthTimeButtonBoxRect->w &&
                 mouseY >= fourthTimeButtonBoxRect->y && mouseY <= fourthTimeButtonBoxRect->y + fourthTimeButtonBoxRect->h){
-                    printf("Quarto Botão\n");
+                    dados.idSessao = 4;
                     fflush(stdout);
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
@@ -1702,6 +1713,9 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
                   if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
                     wbkgd(my_win[i], COLOR_PAIR(3)); //mudar cadeira para vermelho
                     wrefresh(my_win[i]);
+                    printf("%d", i);
+                    //printf("\n%s %d %d\n", dados.usuarioLogado, dados.idFilme, dados.idSessao);
+                    fflush(stdout);
                   }
                 }
                 getbegyx(CANCEL, windowCoordY, windowCoordX);

@@ -13,6 +13,7 @@ typedef struct cadeira
     int idFilme; // 1 a 4
     int idSessao; // 1 a 4      
     int numero; // 1 a 64
+    int status;
     char comprador[50];
     struct cadeira* prox;
 } Cadeira;
@@ -26,7 +27,7 @@ typedef struct
 
 void cria(Carrinho* c);
 int insere(Carrinho* c, int idFilme, int idSessao, int numero);
-int retira(Carrinho* c, int id);
+int retira(Carrinho* c, int numero);
 void reserva(Carrinho* c, char comprador[50]);
 int estaVazia(Carrinho c);
 void mostra(Carrinho c);
@@ -52,6 +53,9 @@ int main()
     strcpy(comprador, "Felipe");
 
     reserva(&c, comprador);
+
+    // 1,1,1,0,NULL
+    // 1,1,2,0,NULL
 
     mostra(c);
 

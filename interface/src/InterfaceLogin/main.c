@@ -1702,6 +1702,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
                   if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
                     wbkgd(my_win[i], COLOR_PAIR(3)); //mudar cadeira para vermelho
                     wrefresh(my_win[i]);
+                    
                   }
                 }
                 getbegyx(CANCEL, windowCoordY, windowCoordX);

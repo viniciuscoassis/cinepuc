@@ -1,3 +1,5 @@
+// COMPILADOR POR ENQUANTO : gcc -o programa src/main.c lib/estruturaCinema.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +7,7 @@
 
 int main() {
     char nomeArquivo[] = "cadeirasAVT.bin";
-    
+
     // adicionarSessoes(nomeArquivo);     //QUANDO FOR CRIAR NOVA SESSÃO DE FILMES DESCOMENTAR
     // return 0;
 

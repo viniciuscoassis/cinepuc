@@ -10,6 +10,7 @@ Para rodar o código:
         ./CINEMA
 */
 
+//Bibliotecas
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
@@ -17,14 +18,17 @@ Para rodar o código:
 #include <string.h>
 #include "../include/cadastro.h"
 
-//Login/Register Screen
+//TELA LOGIN/REGISTRO
+//Flags para determinar a tela, o campo de escrita ou a possibidade de esconder/visualizar a senha.
 #define MAX_TEXT_LENGTH 50
 enum { LOGIN_SCREEN, REGISTER_SCREEN, MOVIE_SCREEN, TIME_SELECTION_SCREEN, SEAT_SELECTION_SCREEN } currentScreen = LOGIN_SCREEN;
 enum { LOGIN_FIELD, PASSWORD_FIELD, CONFIRM_FIELD } activeField = LOGIN_FIELD;
 enum { SHOW, HIDE } showPassword = SHOW;
 enum { SHOW_CONFIRM, HIDE_CONFIRM  } showConfirmPassword = SHOW_CONFIRM;
+//Flag para limpar os campos de texto (Usado na troca de telas ex: login para cadastro)
 enum { CLEAR, DONT_CLEAR } clearInput = DONT_CLEAR;
 
+//Flag para determinar a cor da caixa de texto (Usado quando o usuario registra um nome/email ja existentes)
 enum boxColor { RED, BLACK };
 typedef enum boxColor boxColor;
 
@@ -32,7 +36,7 @@ typedef struct {
     boxColor color;
 } Box;
 
-//Movie Screen
+//TELA PARA ESCOLHER O FILME
 #define ROWS 2
 #define COL 2
 
@@ -40,14 +44,16 @@ typedef struct {
 #define MOVIE_HEIGHT 300
 #define PADDING 50
 
+//Struct para determinar o nome e a imagem do filme
 typedef struct{
     SDL_Texture *image;
     char name[50];
 } Movie;
 
+//Matriz da struct acima, no caso de ROWS 2 e COLS 2 teremos 4 filmes
 Movie movies[ROWS][COL];
 
-//Seat Selection Screen
+//TELA PARA SELECIONAR OS ASSENTOS
 #define HEIGHT 1            //altura da cadeira
 #define WIDTH 3             //largura da cadeira 
 #define TOTAL_WIDTH ((WIDTH + GRID_SPACING) * (CHAIR_COL_AMOUNT + 1) - GRID_SPACING)    //largura de toda a interface somada
@@ -62,7 +68,14 @@ Movie movies[ROWS][COL];
 
 WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
 
-//Inits
+/*
+Inits: são usados para iniciar certas funcoes:
+    -Iniciar a Tela
+    -Iniciar o Renderizador
+    -Iniciar a fonte de texto
+    -Iniciar as Imagens
+    -Inicias as Surfaces e Texture (Necessarias para a renderizacao de um texto, caixa ou qualquer outra coisa)
+*/
 int initSDL();
 SDL_Window* initWindow();
 SDL_Renderer* initRender(SDL_Window* window);
@@ -71,12 +84,18 @@ SDL_Texture* initImage(SDL_Window* window, SDL_Renderer* renderer, char* link);
 SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, char* text, SDL_Color textColor);
 SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, SDL_Surface* surface);
 
-//Handles
+/*
+Handles: são usados para lidar com certos eventos:
+    -handleKeyboard: lida com a utilizacao do teclado
+    -handleMouse: lida com a utilizacao do mouse
+    -handleWindow: lida com o resize da tela
+*/
 void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
 void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
 void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font);
 
-//Login Screen
+//RENDERIZADORES: são usados para renderizar telas especificas
+//TELA DE LOGIN
 void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect, SDL_Rect registerButtonBoxRect,
@@ -86,7 +105,7 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
             int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth, Box* loginBoxColor, Box* passwordBoxColor);
 void centerLoginHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* registerButtonBoxRect, int windowWidth, int windowHeight);
 
-//Register Screen
+//TELA DE REGISTRO
 void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect, SDL_Rect confirmViewImageRect, SDL_Rect confirmHideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect confirmPasswordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect,
@@ -103,12 +122,12 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
             Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
 void centerRegisterHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, int windowWidth, int windowHeight);
 
-//Movie Screen
+//TELA PARA SELECIONAR O FILME
 void renderMovieScreen(SDL_Renderer* renderer, TTF_Font* font, char* selectMovieText, int selectMovieWidth, int selectMovieHeight, SDL_Rect* selectMovieRect,
                        int maxTextWidth, int offsetX, int offsetY, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Surface* selectMovieTextSurface, SDL_Texture* selectMovieTextTexture, int windowWidth, int windowHeight, int gridWidth, int gridHeight);
 void centerMovieHUD(int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font);
 
-//Time Selection Screen
+//TELA PARA ESCOLHER O HORARIO
 void renderTimeSelectionScreen(SDL_Renderer* renderer, SDL_Texture* selectTimeTextTexture, int selectTimeTextWidth, int selectTimeTextHeight,
                                SDL_Rect* firstTimeButtonBoxRect, SDL_Texture* firstTimeButtonTextTexture, int firstTimeButtonTextWidth, int firstTimeButtonTextHeight,
                                SDL_Rect* secondTimeButtonBoxRect, SDL_Texture* secondTimeButtonTextTexture, int secondTimeButtonTextWidth, int secondTimeButtonTextHeight,
@@ -120,7 +139,7 @@ void renderTimeSelectionScreen(SDL_Renderer* renderer, SDL_Texture* selectTimeTe
                                int cancelButtonTextWidth, int cancelButtonTextHeight);
 void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* cinepucImageRect, int windowWidth, int windowHeight);
 
-//Seat Selection Screen
+//TELA PARA ESCOLHER OS ASSENTOS
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
 void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
@@ -129,11 +148,11 @@ WINDOW* drawCANCEL(); //função pra criar o botão Cancelar
 WINDOW* drawCONFIRM(); //função pra criar o botão Confirmar
 void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM);  //função para detectar se o mouse clicou na respectiva cadeira
 
-//Clean all textures and surfaces
+//Funcao cleanup usada para limpar todas as textures, surfaces entre outras coisa necessarias em SDL para evitar vazamento de memória
 void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Surface* selectTimeTextSurface, SDL_Surface* firstTimeButtonTextSurface, SDL_Surface* secondTimeButtonTextSurface, SDL_Surface* thirdTimeButtonTextSurface, SDL_Surface* fourthTimeButtonTextSurface, SDL_Texture* selectTimeTextTexture, SDL_Texture* firstTimeButtonTextTexture, SDL_Texture* secondTimeButtonTextTexture, SDL_Texture* thirdTimeButtonTextTexture, SDL_Texture* fourthTimeButtonTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
 
 int main(int argc, char* argv[]) {
-    //Init Global
+    //Init SDL, tela, renderizador e fonte de texto
     initSDL();
     SDL_Window* window = initWindow();
     if (!window) {
@@ -148,70 +167,71 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    //Login Text Variables
+    //VARIAVEIS DE TEXTO
+    //Variaveis tela de login
     char* loginText = "E-mail:";
     char* passwordText = "Senha:";
     char* loginButtonText = "Confirmar";
     char* cancelButtonText = "Cancelar";
     char* registerButtonText = "Cadastrar";
-    //Register Text Variables
+    //Variaveis tela de registro
     char* confirmPasswordText = "Confirmar senha:";
-    //Movie Text Variables
+    //Variaveis tela de selecionar o filme
     strcpy(movies[0][0].name, "Super Mario Bros - O Filme");
     strcpy(movies[0][1].name, "Guardioes da Galaxia: Volume 3");
     strcpy(movies[1][0].name, "Velozes e Furiosos 10");
     strcpy(movies[1][1].name, "Avatar: O Caminho da Agua");
     char selectMovieText[40] = "Selecione o filme que deseja assistir";
-    //Time Selection Variables
+    //Variaveis tela de selecionar o horario do filme
     char* selectTimeText = "Selecione o horario desejado";
     char* firstTimeButtonText = "17:00";
     char* secondTimeButtonText = "19:00";
     char* thirdTimeButtonText = "21:00";
     char* fourthTimeButtonText = "23:00";
 
-    SDL_Color textColor = { 52, 52, 54 };  // Black color
+    SDL_Color textColor = { 52, 52, 54 };  // Texto Preto
 
-    //Login and Register Screen
-    //Init da imagem Cinepuc
+    //INIT DAS IMAGENS
+    //Init da imagem Cinepuc (Usada na tela inicial)
     SDL_Texture* cinepucImage = initImage(window, renderer, "interface/src/assets/image1.jpg");
     if(!cinepucImage) {
         return 1;
     }
-    //Init da imagem do Olho
+    //Init da imagem do Olho (Usada nas caixas de senha para poder ver ou nao a senha)
     SDL_Texture* viewImage = initImage(window, renderer, "interface/src/assets/view.png");
     if(!viewImage) {
         return 1;
     }
-    //Init da imagem do Olho "Fechado"
+    //Init da imagem do Olho "Fechado" (Usada nas caixas de senha para poder ver ou nao a senha)
     SDL_Texture* hideImage = initImage(window, renderer, "interface/src/assets/hide.png");
     if(!hideImage) {
         return 1;
     }
-    //Movie Screen
     //Init das imagens dos filmes
     movies[0][0].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage.jpg");
     movies[0][1].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage1.jpg");
     movies[1][0].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage2.jpg");
     movies[1][1].image = IMG_LoadTexture(renderer, "interface/src/assets/movieImage3.jpg");
 
-    // Init a surface for each screen text
-    // Login Screen
-    SDL_Surface* loginTextSurface = initSurface(window, renderer, font, loginText, textColor);
-    SDL_Surface* passwordTextSurface = initSurface(window, renderer, font, passwordText, textColor);
-    SDL_Surface* cancelButtonTextSurface = initSurface(window, renderer, font, cancelButtonText, textColor);
-    SDL_Surface* loginButtonTextSurface = initSurface(window, renderer, font, loginButtonText, textColor);
-    SDL_Surface* registerButtonTextSurface = initSurface(window,renderer, font, registerButtonText, textColor);
-    //Register Screen
-    SDL_Surface* confirmPasswordTextSurface = initSurface(window, renderer, font, confirmPasswordText, textColor);
-    //Movie Screen
-    SDL_Surface* selectMovieTextSurface = initSurface(window, renderer, font, selectMovieText, textColor);
-    //Time Selection Screen
-    SDL_Surface* selectTimeTextSurface = initSurface(window, renderer, font, selectTimeText, textColor);
-    SDL_Surface* firstTimeButtonTextSurface = initSurface(window, renderer, font, firstTimeButtonText, textColor);
-    SDL_Surface* secondTimeButtonTextSurface = initSurface(window, renderer, font, secondTimeButtonText, textColor);
-    SDL_Surface* thirdTimeButtonTextSurface = initSurface(window, renderer, font, thirdTimeButtonText, textColor);
-    SDL_Surface* fourthTimeButtonTextSurface = initSurface(window, renderer, font, fourthTimeButtonText, textColor);
+    // INIT DAS SURFACES
+    // TELA DE LOGIN
+    SDL_Surface* loginTextSurface = initSurface(window, renderer, font, loginText, textColor); //Texto "E-mail" acima da caixa de login
+    SDL_Surface* passwordTextSurface = initSurface(window, renderer, font, passwordText, textColor); //Texto "Senha" acima da caixa de senha
+    SDL_Surface* cancelButtonTextSurface = initSurface(window, renderer, font, cancelButtonText, textColor); //Texto "Cancelar" dentro do botao
+    SDL_Surface* loginButtonTextSurface = initSurface(window, renderer, font, loginButtonText, textColor); //Texto "Confirmar" dentro do botao
+    SDL_Surface* registerButtonTextSurface = initSurface(window,renderer, font, registerButtonText, textColor); //Texto "Cadastrar" dentro do botao
+    //TELA DE REGISTRO
+    SDL_Surface* confirmPasswordTextSurface = initSurface(window, renderer, font, confirmPasswordText, textColor); //Texto "Confirmar senha" acima da caixa de confirmar senha
+    //TELA PARA SELECIONAR OS FILMES
+    SDL_Surface* selectMovieTextSurface = initSurface(window, renderer, font, selectMovieText, textColor); //Texto "Selecione o filme que deseja assistir" no topo da tela
+    //TELA PARA SELECIONAR OS HORARIOS
+    SDL_Surface* selectTimeTextSurface = initSurface(window, renderer, font, selectTimeText, textColor); //Texto "Selecione o horario desejado" no topo da tela
+    SDL_Surface* firstTimeButtonTextSurface = initSurface(window, renderer, font, firstTimeButtonText, textColor); //Texto do primeiro horário
+    SDL_Surface* secondTimeButtonTextSurface = initSurface(window, renderer, font, secondTimeButtonText, textColor); //Texto do segundo horário
+    SDL_Surface* thirdTimeButtonTextSurface = initSurface(window, renderer, font, thirdTimeButtonText, textColor); //Texto do terceiro horário
+    SDL_Surface* fourthTimeButtonTextSurface = initSurface(window, renderer, font, fourthTimeButtonText, textColor); //Texto do quarto horário
 
+    //Verificador para ver se todas as Surfaces foram devidamente iniciadas
     if (!loginTextSurface || !passwordTextSurface || !loginButtonTextSurface || !cancelButtonTextSurface || !registerButtonTextSurface || !confirmPasswordTextSurface || !selectMovieTextSurface || !selectTimeTextSurface || !firstTimeButtonTextSurface || !secondTimeButtonTextSurface || !thirdTimeButtonTextSurface || !fourthTimeButtonTextSurface) {
         SDL_FreeSurface(loginTextSurface);
         SDL_FreeSurface(passwordTextSurface);
@@ -228,24 +248,25 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Init textures for each surface
-    //Login Screen
+    //INIT DAS TEXTURES USANDO AS SURFACES CRIADAS ACIMA (NOMENCLATURA SEGUE O MESMO PADRAO E ORDEM DAS SURFACES ACIMA)
+    //TELA DE LOGIN
     SDL_Texture* loginTextTexture = initTexture(window, renderer, font, loginTextSurface);
     SDL_Texture* passwordTextTexture = initTexture(window, renderer, font, passwordTextSurface);
     SDL_Texture* loginButtonTextTexture = initTexture(window, renderer, font, loginButtonTextSurface);
     SDL_Texture* cancelButtonTextTexture = initTexture(window, renderer, font, cancelButtonTextSurface);
     SDL_Texture* registerButtonTextTexture = initTexture(window, renderer, font, registerButtonTextSurface);
-    //Register Screen
+    //TELA DE REGISTRO
     SDL_Texture* confirmPasswordTextTexture = initTexture(window, renderer, font, confirmPasswordTextSurface);
-    //Movie Screen
+    //TELA PARA SELECIONAR O FILME
     SDL_Texture* selectMovieTextTexture = initTexture(window, renderer, font, selectMovieTextSurface);
-    //Time Selection Screen
+    //TELA PARA SELECIONAR O HORARIO
     SDL_Texture* selectTimeTextTexture = initTexture(window, renderer, font, selectTimeTextSurface);
     SDL_Texture* firstTimeButtonTextTexture = initTexture(window, renderer, font, firstTimeButtonTextSurface);
     SDL_Texture* secondTimeButtonTextTexture = initTexture(window, renderer, font, secondTimeButtonTextSurface);
     SDL_Texture* thirdTimeButtonTextTexture = initTexture(window, renderer, font, thirdTimeButtonTextSurface);
     SDL_Texture* fourthTimeButtonTextTexture = initTexture(window, renderer, font, fourthTimeButtonTextSurface);
     
+    //Verificao para ver se as textures foram devidamente iniciadas
     if (!loginTextTexture || !passwordTextTexture || !loginButtonTextTexture || !cancelButtonTextTexture || !registerButtonTextTexture || !confirmPasswordTextTexture || !selectMovieTextTexture || !selectTimeTextTexture || !firstTimeButtonTextTexture || !secondTimeButtonTextTexture || !thirdTimeButtonTextTexture || !fourthTimeButtonTextTexture) {
         SDL_FreeSurface(loginTextSurface);
         SDL_FreeSurface(passwordTextSurface);
@@ -262,12 +283,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    //Get window size
+    //Tamanho da tela
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    // Get the dimensions of the rendered text
-    //Login Screen
+    //VARIAVEIS PARA DETERMINAR O TAMANHO (ALTURA E LARGURA) DAS SURFACES CRIADAS ANTERIORMENTE
+    //  -Segue tambem a mesma logica de nomenclatura das textures e surfaces, sendo width a largura e height a altura
+    //TELA DE LOGIN
     int loginTextWidth = loginTextSurface->w;
     int loginTextHeight = loginTextSurface->h;
     int passwordTextWidth = passwordTextSurface->w;
@@ -278,10 +300,11 @@ int main(int argc, char* argv[]) {
     int cancelButtonTextHeight = cancelButtonTextSurface->h;
     int registerButtonTextWidth = registerButtonTextSurface->w;
     int registerButtonTextHeight = registerButtonTextSurface->h;
-    //Register Screen
+    //TELA DE REGISTRO
     int confirmPasswordTextWidth = confirmPasswordTextSurface->w;
     int confirmPasswordTextHeight = confirmPasswordTextSurface->h;
-    //Movie Screen
+    //TELA PARA SELECIONAR O FILME
+    //Funcoes usadas para centralizar todo o grid/hud
     int totalMovieWidth = COL * MOVIE_WIDTH;
     int totalMovieHeight = ROWS * MOVIE_HEIGHT;
     int totalTextHeight = ROWS * 30;
@@ -297,7 +320,7 @@ int main(int argc, char* argv[]) {
     int maxTextWidth = 0; 
 
     int selectMovieWidth, selectMovieHeight;
-    //Time Selection Screen
+    //TELA PARA SELECIONAR O HORARIO
     int selectTimeTextWidth = selectTimeTextSurface->w;
     int selectTimeTextHeight = selectTimeTextSurface->h;
     int firstTimeButtonTextWidth = firstTimeButtonTextSurface->w;
@@ -310,68 +333,69 @@ int main(int argc, char* argv[]) {
     int fourthTimeButtonTextHeight = fourthTimeButtonTextSurface->h;
     
 
-    //Login Screen
-    //Set up the cinepuc image size
+    //DECLARACAO DOS RECTS: são usados para determinar o tamanho das imagens, o tamanho das caixas de texto (login, senha, confirmar senha) e o tamanho dos botoes (cancelar, confirmar e cadastrar)
+    //TELA DE LOGIN
+    //Tamanho da imagem cinepuc
     SDL_Rect cinepucImageRect = { 0, 0, 131, 172 };
 
-    //Set up the view image size
+    //Tamanho da imagem do olho aberto
     SDL_Rect viewImageRect = { 0, 0, 24, 24 };
 
-    //Set up the hide image size
+    //Tamanho da imagem do olho fechado
     SDL_Rect hideImageRect = { 0, 0, 24, 24 };
 
-    // Set up the rectangle for the login box
+    //Tamanho da caixa de texto para digitar o usuario/email
     SDL_Rect loginBoxRect = { 0, 0, 300, loginTextHeight + 20 };
 
-    // Set up the rectangle for the password box
+    //Tamanho da caixa de texto para digitar a senha
     SDL_Rect passwordBoxRect = { 0, 0, 300, passwordTextHeight + 20 };
 
-    //Set up the rectangle for the login button    
+    //Tamanho do botao "Confirmar"
     SDL_Rect loginButtonBoxRect = { 0, 0, 130, loginButtonTextHeight + 15};
 
-    //Set up the rectangle for the cancel button
+    //Tamanho do botao "Cancelar"
     SDL_Rect cancelButtonBoxRect = { 0, 0, 130, cancelButtonTextHeight + 15};
 
-    //Set up the rectangle for the register button
+    //Tamanho do botao "Cadastrar"
     SDL_Rect registerButtonBoxRect = { 0, 0, 300, registerButtonTextHeight + 15};
 
-    //Register Screen
-    //Set up the rectangle for the confirm password box
+    //TELA DE REGISTRO
+    //Tamanho da caixa de texto para digitar a segunda senha (Confirmar senha)
     SDL_Rect confirmPasswordBoxRect = { 0, 0, 300, confirmPasswordTextHeight + 20 };
 
-    //Set up the view image size for the confirm password input box
+    //Tamanho da imagem do olho aberto (segunda senha)
     SDL_Rect confirmViewImageRect = { 0, 0, 24, 24 };
 
-    //Set up the hide image size
+    //Tamanho da imagem do olho fechado (segunda senha)
     SDL_Rect confirmHideImageRect = { 0, 0, 24, 24 };
 
-    //Movie Screen
-    //Set up the movie image Rect
+    //TELA PARA ESCOLHER O FILME
+    //Vetor para determinar o tamanho das imagens dos filmes
     SDL_Rect movieRect[2][2];
 
-    //Set up the movie text Rect
+    //Vetor para determinar o texto abaixo das imagens
     SDL_Rect textRect[2][2];
 
-    //Set up the select movie text Rect
+    //Rect para o texto "Selecione o filme que deseja assistir"
     SDL_Rect selectMovieRect;
 
-    //Time Select Screen
-    //Set up the heading text
+    //TELA PARA SELECIONAR O HORARIO
+    //Rect para determinar o tamanho do texto "Selecione o horario desejado"
     SDL_Rect selectTimeTextRect = {0, 0, selectTimeTextWidth, selectTimeTextHeight};
 
-    //Set up the first button box Rect
+    //Rect para determinar o tamanho do botao do primeiro horario
     SDL_Rect firstTimeButtonBoxRect = { 0, 0, 300, firstTimeButtonTextHeight + 15};
 
-    //Set up the second button box Rect
+    //Rect para determinar o tamanho do botao do segundo horario
     SDL_Rect secondTimeButtonBoxRect = { 0, 0, 300, secondTimeButtonTextHeight + 15};
 
-    //Set up the third button box Rect
+    //Rect para determinar o tamanho do botao do terceiro horario
     SDL_Rect thirdTimeButtonBoxRect = { 0, 0, 300, thirdTimeButtonTextHeight + 15};
 
-    //Set up the fourth button box Rect
+    //Rect para determinar o tamanho do botao do quarto horario
     SDL_Rect fourthTimeButtonBoxRect = { 0, 0, 300, fourthTimeButtonTextHeight + 15};
 
-    //Set up text width
+    //Loop para setar o tamanho do texto e da imagem de cada filme (Usando os vetores criado anteriormente) 
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COL; col++)
@@ -394,34 +418,48 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create a buffer to hold the text
-    //Login Screen
-    char loginInputText[MAX_TEXT_LENGTH + 1];  // Add 1 for null-terminator
+    //CRIACAO DAS STRINGS QUE SERAO MOSTRADAS DE ACORDO COM O QUE O USUARIO DIGITA
+    //TELA DE LOGIN
+    //String em que o usuario digitara o seu login/email
+    char loginInputText[MAX_TEXT_LENGTH + 1];
+    //A funcao memset eh usada para iniciar a string toda com 0, evita possivel lixo de memoria na tela (usada da mesma forma nos memsets abaixo)
     memset(loginInputText, 0, sizeof(loginInputText));
 
-    char passwordInputText[MAX_TEXT_LENGTH + 1];  // Add 1 for null-terminator
+    //String em que o usuario digitara a sua senha
+    char passwordInputText[MAX_TEXT_LENGTH + 1];
     memset(passwordInputText, 0, sizeof(passwordInputText));
 
+    //String usada para esconder a senha na tela (tem o mesmo numero de caracteres da string acima porem somente com *)
     char passwordMask[MAX_TEXT_LENGTH + 1];
-    //Register Screen
-    char confirmPasswordInputText[MAX_TEXT_LENGTH + 1];  // Add 1 for null-terminator
-    memset(passwordInputText, 0, sizeof(passwordInputText));
+    memset(passwordMask, 0, sizeof(passwordMask));
 
+
+    //TELA DE REGISTRO
+    //String em que o usuario digitara a senha pela segunda vez (confirma senha)
+    char confirmPasswordInputText[MAX_TEXT_LENGTH + 1];
+    memset(confirmPasswordInputText, 0, sizeof(confirmPasswordInputText));
+
+    //String usada para esconder a senha na tela (no caso a segunda senha)
     char confirmPasswordMask[MAX_TEXT_LENGTH + 1];
+    memset(confirmPasswordMask, 0, sizeof(confirmPasswordMask));
 
-    //Login Screen
-    // Create surfaces for the input texts
+    //TELA DE LOGIN
+    //CRIACAO DAS SURFACES PARA O LOGIN E SENHA QUE SERA DIGITADO NA TELA
+    //Nao foi necessario criar surface e texture pra PasswordMask pois eh possivel renderizar em cima das textures abaixo
     SDL_Surface* loginInputTextSurface = NULL;
     SDL_Surface* passwordInputTextSurface = NULL;
 
-    // Create textures for the input texts
+    //CRIACAO DAS TEXTURES PARA AS SURFACES ACIMA
     SDL_Texture* loginInputTextTexture = NULL;
     SDL_Texture* passwordInputTextTexture = NULL;
 
-    //Register Screen
+    //TELA DE REGISTRO
+    //CRIACAO DA SURFACE E TEXTURE PARA A SEGUNDA CAIXA DE SENHA (confirma senha)
     SDL_Surface* confirmPasswordInputTextSurface = NULL;
     SDL_Texture* confirmPasswordInputTextTexture = NULL;
 
+    //Structs para determinar qual vai ser a cor da caixa de login, senha e confirma senha
+    //A mudanca de cor no codigo eh usada para determinar um erro (ex: login invalido)
     //Cor da caixa de login
     Box loginBoxColor;
     loginBoxColor.color = BLACK;
@@ -432,34 +470,43 @@ int main(int argc, char* argv[]) {
     Box confirmPasswordBoxColor;
     confirmPasswordBoxColor.color = BLACK;
 
-    // Main loop
-    SDL_Event event;
+    //LOOP PRINCIPAL
+    SDL_Event event; //usado para verificar se ocorreu algum evento (clique de mouse, uso do teclado, resize da tela)
     int quit = 0;
     while (!quit) {
-        // Process events
+        //Loop para determinar se ocorreu algum evento
         while (SDL_PollEvent(&event)) {
+            //Evento para sair do loop/encerrar o programa
             if (event.type == SDL_QUIT) {
                 quit = 1;
             }
+            //Evento para lidar com o uso de teclado
             else if (event.type == SDL_KEYDOWN || event.type == SDL_TEXTINPUT) {
                 // Handle keyboard input
                 handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
             }
+            //Evento para lidar com o uso de mouse
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
-            // Handle mouse button click
                 handleMouseClick(renderer, &event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
                 &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
             }
+            //Evento para lidar com o resize da tela
             else if (event.type == SDL_WINDOWEVENT) {
                 handleWindowEvent(&event, window, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &cinepucImageRect, &registerButtonBoxRect, &viewImageRect, &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, &selectMovieRect, movieRect, textRect, renderer, font);
             }
         }
+        //IF para determinar se a tela atual eh a de login
+        //a variavel currentScreen muda dentro dos eventos acima de acordo com a necessidade
         if (currentScreen == LOGIN_SCREEN) {
+            //ShowWindow, RaiseWindow e SetWindowInputFocus eh usado para mostrar a janela (nesse caso eh usado para alternar entre ncurses e sdl)
             SDL_ShowWindow(window);
             SDL_RaiseWindow(window);
             SDL_SetWindowInputFocus(window);
+            //Funcao para conseguir o tamanho da Janela
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            //Centralizar a interface de acordo com o tamanho da janela
             centerLoginHUD(&cinepucImageRect, &viewImageRect, &hideImageRect, &loginBoxRect, &passwordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, &registerButtonBoxRect, windowWidth, windowHeight);
+            //Renderizar a tela de Login usando as Surfaces, Textures e Rects criados anteriormente
             renderLoginScreen(renderer, font, textColor,
             cinepucImage, cinepucImageRect, viewImage, viewImageRect, hideImage, hideImageRect,
             loginBoxRect, passwordBoxRect, cancelButtonBoxRect, loginButtonBoxRect, registerButtonBoxRect,
@@ -472,9 +519,13 @@ int main(int argc, char* argv[]) {
             loginButtonTextHeight, loginButtonTextWidth,
             registerButtonTextHeight, registerButtonTextWidth, &loginBoxColor, &passwordBoxColor);
         }
+        //ELSE IF para determinar se a tela atual eh a de cadastro
         else if (currentScreen == REGISTER_SCREEN) {
+            //Funcao para conseguir o tamanho da janela
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            //Centralizar a interface de acordo com o tamanho da janela
             centerRegisterHUD(&cinepucImageRect, &viewImageRect, &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &loginButtonBoxRect, &cancelButtonBoxRect, windowWidth, windowHeight);
+            //Renderizar a tela de cadastro usando as Surfaces, Textures e Rects criados anteriormente
             renderRegisterScreen(renderer, font, textColor,
             cinepucImage, cinepucImageRect, viewImage, viewImageRect, hideImage, hideImageRect, confirmViewImageRect, confirmHideImageRect,
             loginBoxRect, passwordBoxRect, confirmPasswordBoxRect, cancelButtonBoxRect, loginButtonBoxRect,
@@ -489,53 +540,73 @@ int main(int argc, char* argv[]) {
             cancelButtonTextHeight, cancelButtonTextWidth,
             loginButtonTextHeight, loginButtonTextWidth, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
         }
+        //ELSE IF para determinar se a tela atual eh a de selecionar filmes
         else if (currentScreen == MOVIE_SCREEN) {
+            //Funcao para conseguir o tamanho da janela
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            //Renderizar a tela de selecionar filmes usando as Surfaces, Textures e Rects criados anteriormente
             renderMovieScreen(renderer, font, selectMovieText, selectMovieWidth, selectMovieHeight, &selectMovieRect, maxTextWidth, offsetX, offsetY, movieRect, textRect, selectMovieTextSurface, selectMovieTextTexture, windowWidth, windowHeight, gridWidth, gridHeight);
         }
+        //ELSE IF para determinar se a tela atual eh a de selecionar horarios
         else if (currentScreen == TIME_SELECTION_SCREEN) {
+            //Mesma ideia da tela de login, funcoes usadas para alternar entre ncurses e sdl
             SDL_ShowWindow(window);
             SDL_RaiseWindow(window);
             SDL_SetWindowInputFocus(window);
+            //Funcao para conseguir o tamanho da tela
             SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+            //Centralizar a interface de acordo com o tamanho da janela
             centerTimeSelectionHUD(&selectTimeTextRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, &cancelButtonBoxRect, &cinepucImageRect, windowWidth, windowHeight);
+            //Renderizar a tela de selecionar horarios usando as Surfaces, Textures e Rects criados anteriormente
             renderTimeSelectionScreen(renderer, selectTimeTextTexture, selectTimeTextWidth, selectTimeTextHeight, &firstTimeButtonBoxRect, firstTimeButtonTextTexture, firstTimeButtonTextWidth, firstTimeButtonTextHeight, &secondTimeButtonBoxRect, secondTimeButtonTextTexture, secondTimeButtonTextWidth, secondTimeButtonTextHeight, &thirdTimeButtonBoxRect, thirdTimeButtonTextTexture, thirdTimeButtonTextWidth, thirdTimeButtonTextHeight, &fourthTimeButtonBoxRect, fourthTimeButtonTextTexture, fourthTimeButtonTextWidth, fourthTimeButtonTextHeight, selectTimeTextRect, &cancelButtonBoxRect, cancelButtonTextTexture, cinepucImage, cinepucImageRect, cancelButtonTextWidth, cancelButtonTextHeight);
         }
+        //ELSE IF para determinar se a tela atual eh a de selecionar assentos
         else if (currentScreen == SEAT_SELECTION_SCREEN) {
+            //Funcao para esconder a tela SDL
             SDL_HideWindow(window);
+            //Init no Ncurses
             initscr();
+            //Funcoes para inicializar o teclado
             cbreak();
             keypad(stdscr, TRUE);
+            //Funcao para inicializar o mouse
             mousemask(ALL_MOUSE_EVENTS, NULL); 
+            //Funcao para esconder o cursor (a area de texto que fica piscando esperando pelo texto)
             curs_set(0);
-
+            //Init das cores
             initColors();
+            //Funcao para desenhar as cadeiras
             drawChairMenu();
+            //Funcao para desenhar a TELA abaixo das cadeiras
             drawTELA();
+            //Funcoes para desenhar os botoes Cancelar e Confirmar
             WINDOW* CANCEL = drawCANCEL();
             WINDOW* CONFIRM = drawCONFIRM();
+            //Funcao para determinar se alguma cadeira/botao foi clicado 
             mouseFunc(CANCEL, CONFIRM);
-        
+
             getch();
+            //Funcao para retornar o cursor (a area de texto que fica piscando esperando pelo texto)
             curs_set(1);
+            //Funcao para encerrar o modo Ncurses
             endwin();
         }
     }
 
-    // Clean up resources
+    // Limpar todas as surfaces e textures para evitar vazamento de memoria
     cleanUp (cinepucImage, viewImage, hideImage, loginTextTexture, passwordTextTexture, loginButtonTextTexture, cancelButtonTextTexture, registerButtonTextTexture, loginInputTextTexture, passwordInputTextTexture, loginTextSurface, passwordTextSurface, loginButtonTextSurface, cancelButtonTextSurface, registerButtonTextSurface, loginInputTextSurface, passwordInputTextSurface, confirmPasswordTextSurface, confirmPasswordTextTexture, confirmPasswordInputTextSurface, confirmPasswordInputTextTexture, selectMovieTextTexture, selectMovieTextSurface, selectTimeTextSurface, firstTimeButtonTextSurface, secondTimeButtonTextSurface, thirdTimeButtonTextSurface, fourthTimeButtonTextSurface, selectTimeTextTexture, firstTimeButtonTextTexture, secondTimeButtonTextTexture, thirdTimeButtonTextTexture, fourthTimeButtonTextTexture, window, font, renderer);
 }
 
 int initSDL() {
-      // Initialize SDL
+      // Init SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
+        SDL_Log("Falha ao iniciar o SDL: %s", SDL_GetError());
         return 1;
     }
 
-    // Initialize SDL_ttf
+    // Init SDL_ttf (fontes)
     if (TTF_Init() != 0) {
-        SDL_Log("Failed to initialize SDL_ttf: %s", TTF_GetError());
+        SDL_Log("Falha ao iniciar o SDL_ttf: %s", TTF_GetError());
         SDL_Quit();
         return 1;
     }
@@ -543,16 +614,17 @@ int initSDL() {
 }
 
 SDL_Window* initWindow() {
-    // Create a window
+    //Criar Janela
     SDL_Window* window = SDL_CreateWindow(
         "Cinepuc",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        1200, 800,  // Set the window size
+        1200, 800,  //Tamanho Janela
         SDL_WINDOW_RESIZABLE
     );
+    //Verificacao para ver se foi possivel criar a janela
     if (!window) {
-        SDL_Log("Failed to create window: %s", SDL_GetError());
+        SDL_Log("Falha ao abrir a Janela: %s", SDL_GetError());
         TTF_Quit();
         SDL_Quit();
         return NULL;
@@ -562,10 +634,11 @@ SDL_Window* initWindow() {
 }
 
 SDL_Renderer* initRender(SDL_Window* window) {
-    // Create a renderer
+    //Criar Render
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    //Verificacao para ver se foi possivel criar o renderer
     if (!renderer) {
-        SDL_Log("Failed to create renderer: %s", SDL_GetError());
+        SDL_Log("Falha ao criar o Render: %s", SDL_GetError());
         SDL_DestroyWindow(window);
         TTF_Quit();
         SDL_Quit();
@@ -576,9 +649,11 @@ SDL_Renderer* initRender(SDL_Window* window) {
 }
 
 TTF_Font* initFont(SDL_Window* window, SDL_Renderer* renderer) {
-    TTF_Font* font = TTF_OpenFont("interface/src/assets/arial.ttf", 24);  // Replace with your font file path
+    //Iniciar a fonte de texto
+    TTF_Font* font = TTF_OpenFont("interface/src/assets/arial.ttf", 24);
+    //Verificacao para ver se foi possivel abrir a fonte
     if (!font) {
-        SDL_Log("Failed to load font: %s", TTF_GetError());
+        SDL_Log("Falha ao carregar a fonte: %s", TTF_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         TTF_Quit();
@@ -590,9 +665,11 @@ TTF_Font* initFont(SDL_Window* window, SDL_Renderer* renderer) {
 }
 
 SDL_Texture* initImage(SDL_Window* window, SDL_Renderer* renderer, char* link){
+    //Carregar a textura da imagem no Render
     SDL_Texture* cinepucImage = IMG_LoadTexture(renderer, link);
+    //Verificacao para ver se foi possivel carregar a imagem
     if(!cinepucImage) {
-        SDL_Log("Failed to load font: %s", TTF_GetError());
+        SDL_Log("Falha ao abrir a imagem: %s", TTF_GetError());
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         TTF_Quit();
@@ -602,6 +679,7 @@ SDL_Texture* initImage(SDL_Window* window, SDL_Renderer* renderer, char* link){
     return cinepucImage;
 }
 
+//Funcao para inicializar as Surfaces
 SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, char* text, SDL_Color textColor) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, textColor);
     if (!surface) {
@@ -616,6 +694,7 @@ SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
     return surface;
 }
 
+//Funcao para inicializar as Textures
 SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, SDL_Surface* surface) {
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     if (!texture) {
@@ -630,54 +709,66 @@ SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
     return texture;
 }
 
+//Funcao para lidar com o teclado
 void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
+    //TELA DE LOGIN
     if (currentScreen == LOGIN_SCREEN) {
+        //BACKSPACE/APAGAR
         if (event->key.keysym.sym == SDLK_BACKSPACE) {
-            // Remove the last character if backspace is pressed
+            //Remove a ultima letra da string de acordo com a caixa selecionada (login ou senha)
             if (event->window.windowID == SDL_GetWindowID(window)) {
                 if (activeField == LOGIN_FIELD && strlen(loginInputText) > 0) {
                     loginInputText[strlen(loginInputText) - 1] = '\0';
                 }
                 else if (activeField == PASSWORD_FIELD && strlen(passwordInputText) > 0) {
+                    //atualizacao da mask simultameamente com o texto de senha
                     passwordInputText[strlen(passwordInputText) - 1] = '\0';
                     passwordMask[strlen(passwordMask) - 1] = '\0';
                 }
             }
         }
-        // Handle the Enter key
+        //ENTER
         else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
-            // Handle the password input logic here
-            printf("Entered login: %s\n", loginInputText);
-            printf("Entered password: %s\n", passwordInputText);
+            printf("Login: %s\n", loginInputText);
+            printf("Senha: %s\n", passwordInputText);
             fflush(stdout);
-            if(validarUsuario(loginInputText, passwordInputText)){
+            //Funcao para validar o usuario (ver se a o login/email e senha estao corretos)
+            if(validarUsuario(loginInputText, passwordInputText)){ //funcao do backend
+                //se o usuario for validado segue para a tela de selecionar filmes
                 currentScreen = MOVIE_SCREEN;
             }
         }
+        //TAB
         else if (event->key.keysym.sym == SDLK_TAB) {
+            //se estiver no campo de senha e apertar tab, muda para o campo de login, alternando entre si
             if (activeField == PASSWORD_FIELD) {
                 activeField = LOGIN_FIELD;
             } else if (activeField == LOGIN_FIELD) {
                 activeField = PASSWORD_FIELD;
             }
         }
+        //IFS PARA DETECTAR O INPUT DO USUARIO
+        //logo apos digitar uma letra ela eh concatenada na string login ou senha
         else if (activeField == LOGIN_FIELD && strlen(loginInputText) < MAX_TEXT_LENGTH) {
-            // Append the entered character to the login input
+            //Concatena a letra
             if (event->type == SDL_TEXTINPUT) {
                 strcat(loginInputText, event->text.text);
             }
         }
         else if (activeField == PASSWORD_FIELD && strlen(passwordInputText) < MAX_TEXT_LENGTH) {
-            // Append the entered character to the password input
+            //Concatena a letra
             if (event->type == SDL_TEXTINPUT) {
+                //event->text.text eh o texto digitado
                 strcat(passwordInputText, event->text.text);
                 strcat(passwordMask, "*");
             }
         }
     }
+    //TELA DE REGISTRO
     else if (currentScreen == REGISTER_SCREEN) {
+        //BACKSPACE/APAGAR
         if (event->key.keysym.sym == SDLK_BACKSPACE) {
-            // Remove the last character if backspace is pressed
+            //Remove a ultima letra da string de acordo com a caixa selecionada (login ou senha)
             if (event->window.windowID == SDL_GetWindowID(window)) {
                 if (activeField == LOGIN_FIELD && strlen(loginInputText) > 0) {
                     loginInputText[strlen(loginInputText) - 1] = '\0';
@@ -692,15 +783,18 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                 }
             }
         }
-        // Handle the Enter key
+        //ENTER
         else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
-            // Handle the password input logic here
-            printf("Entered login: %s\n", loginInputText);
-            printf("Entered password: %s\n", passwordInputText);
-            printf("Entered confirm password: %s\n", confirmPasswordInputText);
+            printf("Login: %s\n", loginInputText);
+            printf("Senha: %s\n", passwordInputText);
+            printf("Confirma senha: %s\n", confirmPasswordInputText);
             fflush(stdout);
+            //Verificacao se as duas senha sao iguais
             if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
+                //SALVA USUARIO NO ARQUIVO
                 int verificar = salvarUsuarioArquivo(loginInputText, passwordInputText);
+                //verifica se o nome de usuario existe ou nao
+                //se ja existir a cor da caixa de login muda para vermelho
                 if(verificar == 0){
                     printf("Usuario repetido.\n");
                     loginBoxColor->color = RED;
@@ -713,10 +807,12 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                 }
             }
             else{
+                //se as senhas nao sao iguais muda as caixas para vermelho
                 passwordBoxColor->color = RED;
                 confirmPasswordBoxColor->color = RED;
             }
         }
+        //TAB
         else if (event->key.keysym.sym == SDLK_TAB) {
             if (activeField == LOGIN_FIELD) {
                 activeField = PASSWORD_FIELD;

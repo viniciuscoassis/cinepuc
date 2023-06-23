@@ -9,7 +9,8 @@
 
 typedef struct cadeira
 {
-    int id;
+    int idFilme;
+    int idSessao;
     int numero;
     char comprador[50];
     struct cadeira* prox;
@@ -23,8 +24,8 @@ typedef struct
 } Carrinho;
 
 void cria(Carrinho* c);
-int insere(Carrinho* c, int id, int numero);
-int retira(Carrinho* c, int id);
+int insere(Carrinho* c, int idFilme, int idSessao, int numero);
+int retira(Carrinho* c, int numero);
 void reserva(Carrinho* c, char comprador[50]);
 int estaVazia(Carrinho c);
 void mostra(Carrinho c);
@@ -32,16 +33,17 @@ void mostra(Carrinho c);
 int main()
 {
     Carrinho c;
-    int id, numero, sucesso;
+    int idFilme, idSessao, numero, sucesso;
     char comprador[50];
+
+    idFilme = 1;
+    idSessao = 1;
 
     cria(&c);
 
-    sucesso = insere(&c, 1, 16);
-    sucesso = insere(&c, 2, 17);
-    sucesso = insere(&c, 3, 18);
-    sucesso = insere(&c, 4, 19);
-    sucesso = insere(&c, 5, 20);
+    sucesso = insere(&c, idFilme, idSessao, 1);
+    sucesso = insere(&c, idFilme, idSessao, 2);
+    sucesso = insere(&c, idFilme, idSessao, 3);
 
     if (!estaVazia(c))    // exibindo a lista
     {
@@ -51,7 +53,7 @@ int main()
         printf("\n");
     }
 
-    strcpy(comprador, "Felipe");
+    strcpy(comprador, "felipemareca@gmail.com");
 
     reserva(&c, comprador);
 
@@ -67,13 +69,14 @@ void cria(Carrinho* c)
     c->tam = 0;
 }
 
-int insere(Carrinho* c, int id, int numero)
+int insere(Carrinho* c, int idFilme, int idSessao, int numero)
 {
     Cadeira* aux = (Cadeira*)malloc(sizeof(Cadeira));
     if (aux == NULL)
         return 0;
 
-    aux->id = id;
+    aux->idFilme = idFilme;
+    aux->idSessao = idSessao;
     aux->numero = numero;
     strcpy(aux->comprador, "");
     aux->prox = NULL;
@@ -93,7 +96,7 @@ int insere(Carrinho* c, int id, int numero)
     return 1;
 }
 
-int retira(Carrinho* c, int id)
+int retira(Carrinho* c, int numero)
 {
     if (estaVazia(*c))
         return 0;
@@ -101,7 +104,7 @@ int retira(Carrinho* c, int id)
     Cadeira* atual = c->inicio;
     Cadeira* anterior = NULL;
 
-    while (atual != NULL && atual->id != id)
+    while (atual != NULL && atual->numero != numero)
     {
         anterior = atual;
         atual = atual->prox;
@@ -152,7 +155,6 @@ void mostra(Carrinho c)
 
     while (atual != NULL)
     {
-        printf("CadeiraID: %d \n", atual->id);
         printf("Numero da Cadeira: %d \n", atual->numero);
         printf("Comprador: %s \n", atual->comprador);
         atual = atual->prox;

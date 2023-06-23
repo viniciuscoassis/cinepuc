@@ -101,7 +101,7 @@ char* obterNomeComprador(Registro* sessoes, int quantidadeSessoes, int idSessao,
     return NULL; // Cadeira não encontrada ou não reservada
 }
 
-void reservarCadeira(Registro* sessoes, int quantidadeSessoes, int idSessao, int idCadeira) {
+void reservarCadeira(Registro* sessoes, int quantidadeSessoes, int idSessao, int idCadeira, char* nomeArquivo) {
     int i;
     for (i = 0; i < quantidadeSessoes; i++) {
         if (sessoes[i].idSessao == idSessao && sessoes[i].idCadeira == idCadeira) {
@@ -115,7 +115,7 @@ void reservarCadeira(Registro* sessoes, int quantidadeSessoes, int idSessao, int
                 strcpy(sessoes[i].comprador, comprador); // Atualiza o nome do comprador
 
                 // Reabre o arquivo em modo de gravação
-                FILE* arquivo = fopen("cadeirasAVT.bin", "rb+");
+                FILE* arquivo = fopen(nomeArquivo, "rb+");
                 if (arquivo == NULL) {
                     printf("Não foi possível abrir o arquivo.\n");
                     return;
@@ -149,4 +149,80 @@ void exibirSessoes(Registro* sessoes, int quantidadeSessoes) {
                sessoes[i].status == 1 ? "Ocupada" : "Disponível",
                sessoes[i].status == 1 ? sessoes[i].comprador : "");
     }
+}
+
+
+// LISTA DE ASSENTOS
+
+ListaAssentos* criarListaAssentos(int capacidade) {
+    ListaAssentos* lista = (ListaAssentos*)malloc(sizeof(ListaAssentos));
+    if (lista == NULL) {
+        printf("Erro ao alocar memória.\n");
+        return NULL;
+    }
+    lista->capacidade = capacidade;
+    lista->quantidadeAssentos = 0;
+    lista->assentos = (Assento*)malloc(capacidade * sizeof(Assento));
+    if (lista->assentos == NULL) {
+        printf("Erro ao alocar memória.\n");
+        free(lista);
+        return NULL;
+    }
+    return lista;
+}
+
+void destruirListaAssentos(ListaAssentos* lista) {
+    free(lista->assentos);
+    free(lista);
+}
+
+void adicionarAssento(ListaAssentos* lista, int idSessao, int idCadeira) {
+    if (lista->quantidadeAssentos == lista->capacidade) {
+        printf("A lista de assentos está cheia.\n");
+        return;
+    }
+    Assento novoAssento;
+    novoAssento.idSessao = idSessao;
+    novoAssento.idCadeira = idCadeira;
+    lista->assentos[lista->quantidadeAssentos++] = novoAssento;
+}
+
+void removerAssento(ListaAssentos* lista, int idSessao, int idCadeira) {
+    int i;
+    for (i = 0; i < lista->quantidadeAssentos; i++) {
+        Assento assento = lista->assentos[i];
+        if (assento.idSessao == idSessao && assento.idCadeira == idCadeira) {
+            // Deslocar os elementos à direita do elemento removido
+            for (int j = i; j < lista->quantidadeAssentos - 1; j++) {
+                lista->assentos[j] = lista->assentos[j + 1];
+            }
+            lista->quantidadeAssentos--;
+            printf("Assento removido com sucesso!\n");
+            return;
+        }
+    }
+    printf("O assento não foi encontrado na lista.\n");
+}
+
+void finalizarPedido(ListaAssentos* lista, Registro* sessoes, int quantidadeSessoes, char* nomeArquivo) {
+    for (int i = 0; i < lista->quantidadeAssentos; i++) {
+        Assento assento = lista->assentos[i];
+        if (!cadeiraOcupada(sessoes, quantidadeSessoes, assento.idSessao, assento.idCadeira)) {
+            reservarCadeira(sessoes, quantidadeSessoes, assento.idSessao, assento.idCadeira, nomeArquivo);
+        } else {
+            printf("O assento (Sessão: %d, Cadeira: %d) já está ocupado.\n", assento.idSessao, assento.idCadeira);
+        }
+    }
+    printf("Assentos adicionados com sucesso!\n");
+    destruirListaAssentos(lista);
+}
+
+
+void exibirListaAssentos(ListaAssentos* lista) {
+    printf("Assentos selecionados:\n");
+    for (int i = 0; i < lista->quantidadeAssentos; i++) {
+        Assento assento = lista->assentos[i];
+        printf("Sessão: %d, Cadeira: %d\n", assento.idSessao, assento.idCadeira);
+    }
+    printf("\n");
 }

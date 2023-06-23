@@ -1,70 +1,7 @@
-/*
-  Programa: Reserva de Cadeiras
-  Descrição: Simula a reserva de cadeiras dentro de uma sala.
-*/
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// Estrutura Cadeira
-typedef struct cadeira
-{
-    int idFilme; // 1 a 4
-    int idSessao; // 1 a 4      
-    int numero; // 1 a 64
-    int status;
-    char comprador[50];
-    struct cadeira* prox;
-} Cadeira;
-
-// Estrura Carrinho de Compras
-typedef struct
-{
-    Cadeira* inicio;
-    Cadeira* fim;
-} Carrinho;
-
-void cria(Carrinho* c);
-int insere(Carrinho* c, int idFilme, int idSessao, int numero);
-int retira(Carrinho* c, int numero);
-void reserva(Carrinho* c, char comprador[50]);
-int estaVazia(Carrinho c);
-void mostra(Carrinho c);
-
-int main()
-{
-    Carrinho c;
-    int idFilme, idSessao, numero, sucesso;
-    char comprador[50];
-
-    cria(&c);
-
-   insere(&c, 1, 1, 52);
-   insere(&c, 2, 2, 34);
-   insere(&c, 3, 3, 22);
-   insere(&c, 4, 4, 11);
-
-    if (!estaVazia(c))    // exibindo a lista
-    {
-        printf("\n-------------------------------------------------\n");
-        printf("Carrinho: \n");
-        mostra(c);
-        printf("\n");
-    }
-
-    strcpy(comprador, "Felipe");
-
-    reserva(&c, comprador);
-
-    // 1,1,1,0,NULL
-    // 1,1,2,0,NULL
-
-    mostra(c);
-
-    return 0;
-}
+#include "../include/carrinho.h"
 
 void cria(Carrinho* c)
 {

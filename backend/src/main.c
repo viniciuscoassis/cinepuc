@@ -55,7 +55,6 @@ int main() {
                     adicionarAssento(listaAssentos, idSessao, idCadeira);
                     printf("Assento adicionado com sucesso!\n");
                 }
-
                 exibirListaAssentos(listaAssentos);
                 break;
             case 2:

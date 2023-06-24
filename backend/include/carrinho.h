@@ -26,10 +26,11 @@ typedef struct {
 } Registro;
 
 void cria(Carrinho* c);
-int insere(Carrinho* c, int idFilme, int idSessao, int numero);
+int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador);
 int retira(Carrinho* c, int numero);
 void reserva(Carrinho* c, char comprador[50]);
 int estaVazia(Carrinho* c);
 void mostra(Carrinho c);
 int esvaziaCarrinho(Carrinho* c);
 void adicionarArquivo(Carrinho* carrinho);
+void lerArquivo(const char* nomeArquivo);

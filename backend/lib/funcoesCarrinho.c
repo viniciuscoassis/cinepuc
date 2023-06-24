@@ -9,7 +9,7 @@ void cria(Carrinho* c)
     c->fim = NULL;
 }
 
-int insere(Carrinho* c, int idFilme, int idSessao, int numero)
+int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador)
 {
     Cadeira* aux = (Cadeira*)malloc(sizeof(Cadeira));
     if (aux == NULL)
@@ -18,7 +18,7 @@ int insere(Carrinho* c, int idFilme, int idSessao, int numero)
     aux->idFilme = idFilme;
     aux->idSessao = idSessao;
     aux->numero = numero;
-    strcpy(aux->comprador, "");
+    strcpy(aux->comprador, comprador);
     aux->prox = NULL;
 
     if (c->inicio == NULL)
@@ -177,13 +177,35 @@ void adicionarArquivo(Carrinho* carrinho) {
         registro.idCadeira = cadeiraAtual->numero;
         registro.status = 1; // Status disponível
         strcpy(registro.comprador, cadeiraAtual->comprador ); // Comprador vazio
-        fwrite(&cadeiraAtual, sizeof(Cadeira), 1, arquivo);
+        fwrite(&registro, sizeof(Registro), 1, arquivo);
         cadeiraAtual = cadeiraAtual->prox;
     }
 
     printf("Sessões adicionadas com sucesso!\n");
 
     // Fecha o arquivo
+    fclose(arquivo);
+}
+
+void lerArquivo(const char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "rb");
+    if (arquivo == NULL) {
+        printf("Não foi possível abrir o arquivo.\n");
+        return;
+    }
+
+    //Cadeira cadeira;
+    Registro registro;
+
+    while (fread(&registro, sizeof(Registro), 1, arquivo) == 1) {
+        printf("ID Filme: %d\n", registro.idFilme);
+        printf("ID Sessão: %d\n", registro.idSessao);
+        printf("ID Cadeira: %d\n", registro.idCadeira);
+        printf("Status: %d\n", registro.status);
+        printf("Comprador: %s\n", registro.comprador);
+        printf("--------------------\n");
+    }
+
     fclose(arquivo);
 }
 

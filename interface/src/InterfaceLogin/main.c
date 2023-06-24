@@ -610,6 +610,7 @@ int main(int argc, char* argv[]) {
             mostra(carrinho);
             int esvazia = esvaziaCarrinho(&carrinho);
             printf("\nCadeiras liberadas: %d\n", esvazia);
+            lerArquivo("cadeirasAVT.bin");
         }
     }
 
@@ -1875,7 +1876,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                             wbkgd(my_win[i], COLOR_PAIR(5)); //mudar cadeira para azul (selecionado)
                             wrefresh(my_win[i]);
                             status[i] = 2;
-                            insere(carrinho, dados->idFilme, dados->idSessao, i);
+                            insere(carrinho, dados->idFilme, dados->idSessao, i, dados->usuarioLogado);
                             //mvwprintw(stdscr, 0, 0, "Antes %d", cadeira[i].status);
                         }
                         else if(status[i] == 1){

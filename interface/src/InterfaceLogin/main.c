@@ -5,7 +5,7 @@ Para baixar as dependencias (Linux):
 Para rodar o código:
     -Abra o terminal na pasta cinepuc
     -Compile o código:
-        gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+        gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
     -Rode o código:
         ./CINEMA
 */

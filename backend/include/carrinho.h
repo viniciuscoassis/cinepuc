@@ -20,5 +20,6 @@ void cria(Carrinho* c);
 int insere(Carrinho* c, int idFilme, int idSessao, int numero);
 int retira(Carrinho* c, int numero);
 void reserva(Carrinho* c, char comprador[50]);
-int estaVazia(Carrinho c);
+int estaVazia(Carrinho* c);
 void mostra(Carrinho c);
+int esvaziaCarrinho(Carrinho* c);

@@ -18,6 +18,7 @@ Para rodar o código:
 #include <string.h>
 #include "cadastro.h"
 #include "carrinho.h"
+//#include "estruturaCinema.h"
 
 // Estrutura para armazenar os dados no frontend e passar pro backend
 typedef struct {
@@ -74,10 +75,8 @@ Movie movies[ROWS][COL];
 #define STARTY ((LINES - TOTAL_HEIGHT) /2)  //formula para centralizar a interface verticalmente
 #define COLOR_GRAY 9
 
-typedef struct {
-    WINDOW *my_win; //Vetor de Janelas com tamanho de [número de cadeiras].
-    int status; // Disponivel (0), ocupado (1) ou selecionado (2)
-} chairNcurses;
+WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
+int status[CHAIR_AMOUNT]; // Disponivel (0), ocupado (1) ou selecionado (2)
 
 /*
 Inits: são usados para iniciar certas funcoes:
@@ -153,11 +152,11 @@ void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeBut
 //TELA PARA ESCOLHER OS ASSENTOS
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
-void drawChairMenu(chairNcurses* cadeira);   //função para desenhar o menu (cadeiras + letras e numeros)
+void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
 void drawTELA();  //função para criar o texto TELA
 WINDOW* drawCANCEL(); //função pra criar o botão Cancelar
 WINDOW* drawCONFIRM(); //função pra criar o botão Confirmar
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados);  //função para detectar se o mouse clicou na respectiva cadeira
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* carrinho);  //função para detectar se o mouse clicou na respectiva cadeira
 
 //Funcao cleanup usada para limpar todas as textures, surfaces entre outras coisa necessarias em SDL para evitar vazamento de memória
 void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Surface* selectTimeTextSurface, SDL_Surface* firstTimeButtonTextSurface, SDL_Surface* secondTimeButtonTextSurface, SDL_Surface* thirdTimeButtonTextSurface, SDL_Surface* fourthTimeButtonTextSurface, SDL_Texture* selectTimeTextTexture, SDL_Texture* firstTimeButtonTextTexture, SDL_Texture* secondTimeButtonTextTexture, SDL_Texture* thirdTimeButtonTextTexture, SDL_Texture* fourthTimeButtonTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
@@ -576,12 +575,11 @@ int main(int argc, char* argv[]) {
         }
         //ELSE IF para determinar se a tela atual eh a de selecionar assentos
         else if (currentScreen == SEAT_SELECTION_SCREEN) {
-            chairNcurses cadeira[CHAIR_AMOUNT]; //cria struct para numero de cadeiras (64)
             for (int i = 0; i < CHAIR_AMOUNT; i++) {
-                cadeira[i].status = 0;
+                status[i] = 0;
             }
-            //Carrinho c;
-            //cria(&c);
+            Carrinho carrinho;
+            cria(&carrinho);
             //Funcao para esconder a tela SDL
             SDL_HideWindow(window);
             //Init no Ncurses
@@ -596,20 +594,22 @@ int main(int argc, char* argv[]) {
             //Init das cores
             initColors();
             //Funcao para desenhar as cadeiras
-            drawChairMenu(cadeira);
+            drawChairMenu();
             //Funcao para desenhar a TELA abaixo das cadeiras
             drawTELA();
             //Funcoes para desenhar os botoes Cancelar e Confirmar
             WINDOW* CANCEL = drawCANCEL();
             WINDOW* CONFIRM = drawCONFIRM();
             //Funcao para determinar se alguma cadeira/botao foi clicado 
-            mouseFunc(CANCEL, CONFIRM, cadeira, &dados);
-
+            mouseFunc(CANCEL, CONFIRM, &dados, &carrinho);
             getch();
             //Funcao para retornar o cursor (a area de texto que fica piscando esperando pelo texto)
             curs_set(1);
             //Funcao para encerrar o modo Ncurses
             endwin();
+            mostra(carrinho);
+            int esvazia = esvaziaCarrinho(&carrinho);
+            printf("\nCadeiras liberadas: %d\n", esvazia);
         }
     }
 
@@ -1746,7 +1746,6 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
     WINDOW *local_win;
 
     local_win = newwin(height, width, starty, startx); //criar janela
-    wbkgd(local_win, COLOR_PAIR(2)); //mudar cor da janela
     box(local_win, 0, 0); // colocar borda na janela
     wrefresh(local_win);  // atualizar a janela
 
@@ -1764,14 +1763,15 @@ void initColors(){
     init_color(COLOR_WHITE, 1000, 1000, 1000);
     init_color(COLOR_GRAY, 250, 250, 250);
     init_pair(1, COLOR_BLACK, COLOR_WHITE); //Escrita Preta e Fundo Branco
-    init_pair(2, COLOR_WHITE, COLOR_GREEN); //Escrita Branca e Fundo Vermelho
-    init_pair(3, COLOR_WHITE, COLOR_RED);   //Escrita Branca e Fundo Verde
+    init_pair(2, COLOR_WHITE, COLOR_GREEN); //Escrita Branca e Fundo Verde
+    init_pair(3, COLOR_WHITE, COLOR_RED);   //Escrita Branca e Fundo Vermelho
     init_pair(4, COLOR_WHITE, COLOR_GRAY);   //Escrita Branca e Fundo Cinza
+    init_pair(5, COLOR_WHITE, COLOR_BLUE); //Escrita Branca e Fundo Azul
     wbkgd(stdscr, COLOR_PAIR(1)); //stdscr = Fundo do Terminal
     refresh();
 }
 
-void drawChairMenu(chairNcurses* cadeira){
+void drawChairMenu(){
   int boxX, boxY;
   int counter = 0; //determina quantas cadeiras foram adicionadas
   
@@ -1796,7 +1796,15 @@ void drawChairMenu(chairNcurses* cadeira){
             attroff(A_BOLD);
           }
           else{
-            cadeira[counter].my_win = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
+            my_win[counter] = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
+            if(status[counter] == 0){
+                wbkgd(my_win[counter], COLOR_PAIR(2)); //mudar cor da janela
+                wrefresh(my_win[counter]);  // atualizar a janela
+            }
+            else if(status[counter] == 1){
+                wbkgd(my_win[counter], COLOR_PAIR(4)); //mudar cor da janela
+                wrefresh(my_win[counter]);  // atualizar a janela
+            }
             counter++;
           }
       }
@@ -1848,7 +1856,7 @@ WINDOW* drawCONFIRM(){
 }
 
 //funcao para detectar evento de mouse
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados){
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* carrinho){
     int windowCoordX, windowCoordY;
     MEVENT event;
     nodelay(stdscr, TRUE);
@@ -1860,15 +1868,27 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFron
                 //for para verificar todas as cadeiras
                 for (int i = 0; i < CHAIR_AMOUNT; i++){
                     //get coordenada da janela i
-                    getbegyx(cadeira[i].my_win, windowCoordY, windowCoordX); 
+                    getbegyx(my_win[i], windowCoordY, windowCoordX);
                     //if que detecta se a coordenada do  clique é igual a coordenada da cadeira
                     if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
-                        wbkgd(cadeira[i].my_win, COLOR_PAIR(3)); //mudar cadeira para vermelho
-                        wrefresh(cadeira[i].my_win);
-                        printf("%d", cadeira[i].status);
+                        if(status[i] == 0){
+                            wbkgd(my_win[i], COLOR_PAIR(5)); //mudar cadeira para azul (selecionado)
+                            wrefresh(my_win[i]);
+                            status[i] = 2;
+                            insere(carrinho, dados->idFilme, dados->idSessao, i);
+                            //mvwprintw(stdscr, 0, 0, "Antes %d", cadeira[i].status);
+                        }
+                        else if(status[i] == 1){
+                        }
+                        else if(status[i] == 2){
+                            wbkgd(my_win[i], COLOR_PAIR(2)); //mudar cadeira para verde (disponivel)
+                            wrefresh(my_win[i]);
+                            retira(carrinho, i);
+                            status[i] = 0;
+                        }
+
                         //mvwprintw(stdscr, 0, 0, "%s %d %d", dados->usuarioLogado, dados->idFilme, dados->idSessao);
-                        mvwprintw(stdscr, 0, 0, "%d", cadeira[i].status);
-                        fflush(stdout);
+                        //mvwprintw(stdscr, 1, 0, "Depois %d", cadeira[i].status);
                     }
                 }
                 //get coordenada do botao cancelar

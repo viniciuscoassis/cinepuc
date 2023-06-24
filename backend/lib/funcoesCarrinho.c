@@ -36,7 +36,7 @@ int insere(Carrinho* c, int idFilme, int idSessao, int numero)
 
 int retira(Carrinho* c, int numero)
 {
-    if (estaVazia(*c))
+    if (estaVazia(c))
         return 0;
 
     Cadeira* atual = c->inicio;
@@ -85,24 +85,26 @@ int esvaziaCarrinho(Carrinho* c)
     if(estaVazia(c)){
         return 0;
     }
-    Cadeira* atual = c->fim;
+    Cadeira* atual = c->inicio;
     Cadeira* proximo;
+    int contador = 0;
 
     while (atual != NULL) {
         proximo = atual->prox;
         free(atual);
         atual = proximo;
+        contador++;
     }
 
     c->inicio = NULL;
     c->fim = NULL;
 
-    return 1;
+    return contador;
 }
 
 void mostra(Carrinho c)
 {
-    if (estaVazia(c))
+    if (estaVazia(&c))
     {
         printf("O carrinho está vazio.\n");
         return;
@@ -122,7 +124,7 @@ void mostra(Carrinho c)
 
 void reserva(Carrinho* c, char comprador[50])
 {
-    if (estaVazia(*c))
+    if (estaVazia(c))
     {
         printf("O carrinho está vazio.\n");
         return;
@@ -137,7 +139,7 @@ void reserva(Carrinho* c, char comprador[50])
     }
 }
 
-int estaVazia(Carrinho c)
+int estaVazia(Carrinho* c)
 {
-    return c.inicio == NULL;
+    return c->inicio == NULL;
 }

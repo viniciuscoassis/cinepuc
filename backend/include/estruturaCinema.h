@@ -35,4 +35,7 @@ void removerAssento(ListaAssentos* lista, int idSessao, int idCadeira);
 void finalizarPedido(ListaAssentos* lista, Registro* sessoes, int quantidadeSessoes, char* nomeArquivo);
 void exibirListaAssentos(ListaAssentos* lista);
 
+/*-------------------------------------------------*/
+int buscaCadeira(int idFilme, int idSessao, int numero);
+
 #endif  // ESTRUTURACINEMA_H

@@ -3,6 +3,48 @@
 #include <string.h>
 #include "../include/estruturaCinema.h"
 
+int buscaCadeira(int idFilme, int idSessao, int numero) {
+
+    FILE* arquivo;
+
+    switch (idFilme)
+    {
+    case 1:
+        arquivo = fopen("cadeirasSMB.bin", "rb");
+        break;
+    case 2:
+        arquivo = fopen("cadeirasGDG.bin", "rb");
+        break;
+    case 3:
+        arquivo = fopen("cadeirasVFX.bin", "rb");
+        break;
+    case 4:
+        arquivo = fopen("cadeirasAVT.bin", "rb");
+        break;
+    }
+
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return 0;
+    }
+
+    Registro reg;
+    rewind(arquivo);
+    while (fread(&reg, sizeof(Registro), 1, arquivo) == 1) {
+        if (reg.idSessao == idSessao && reg.idCadeira == numero) {
+            if (reg.status == 1) //Ocupada
+            {
+                fclose(arquivo);
+                return 1;
+            }            
+            fclose(arquivo);
+            return 0; // Validacao bem-sucedida
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------------------------*/
+
 Registro* obterSessoes(char* nomeArquivo, int* quantidadeSessoes) {
     FILE* arquivo;
     Registro registro;

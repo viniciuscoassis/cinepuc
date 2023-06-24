@@ -6,20 +6,27 @@
 #include "../include/estruturaCinema.h"
 
 int main() {
-    int quantidadeSessoes;
+    int quantidadeSessoes, resultado;
     char nomeArquivo[] = "cadeirasSMB.bin";
     Registro* sessoes;
+
+    resultado = buscaCadeira(4, 2, 33);
+
+    printf("%d", resultado);
+
+    return 1;
+    
 
     /*adicionarSessoes(nomeArquivo);     //QUANDO FOR CRIAR NOVA SESSÃO DE FILMES DESCOMENTAR
     return 0;*/
 
 
-    sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
+    /*sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
     if (sessoes != NULL) {
          // Imprime as sessões e suas cadeiras
          exibirSessoes(sessoes, quantidadeSessoes);
     }
-    return 1;
+    return 1;*/
 
     sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
     if (sessoes == NULL) {

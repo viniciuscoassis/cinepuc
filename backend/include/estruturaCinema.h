@@ -37,5 +37,6 @@ void exibirListaAssentos(ListaAssentos* lista);
 
 /*-------------------------------------------------*/
 int buscaCadeira(int idFilme, int idSessao, int numero);
+void reservaCarrinho(Carrinho* carrinho, char comprador[50]);
 
 #endif  // ESTRUTURACINEMA_H

@@ -4,15 +4,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/estruturaCinema.h"
+#include "../include/carrinho.h"
 
 int main() {
     int quantidadeSessoes, resultado;
     char nomeArquivo[] = "cadeirasSMB.bin";
     Registro* sessoes;
+    Carrinho carrinho;
 
-    resultado = buscaCadeira(4, 2, 33);
+    cria(&carrinho);
 
-    printf("%d", resultado);
+
+    insere(&carrinho, 2, 2, 32);
+    insere(&carrinho, 2, 2, 33);
+    insere(&carrinho, 2, 2, 34);
+
+    reservaCarrinho(&carrinho, "Felipe");
+
 
     return 1;
     

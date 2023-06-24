@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../include/estruturaCinema.h"
+#include "../include/carrinho.h"
 
 int buscaCadeira(int idFilme, int idSessao, int numero) {
 
@@ -41,6 +42,57 @@ int buscaCadeira(int idFilme, int idSessao, int numero) {
             return 0; // Disponivel
         }
     }
+}
+
+void reservaCarrinho(Carrinho* carrinho, char comprador[50] ) {
+
+    FILE* arquivo;
+
+    switch (idFilme)
+    {
+    case 1:
+        arquivo = fopen("cadeirasSMB.bin", "rb");
+        break;
+    case 2:
+        arquivo = fopen("cadeirasGDG.bin", "rb");
+        break;
+    case 3:
+        arquivo = fopen("cadeirasVFX.bin", "rb");
+        break;
+    case 4:
+        arquivo = fopen("cadeirasAVT.bin", "rb");
+        break;
+    }
+
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return 0;
+    }
+
+    if (estaVazia(&carrinho))
+    {
+        printf("O carrinho está vazio.\n");
+        return;
+    }
+
+    Cadeira* atual = carrinho->inicio;
+    Registro reg;
+
+    while (atual != NULL)
+    {
+        rewind(arquivo);
+        while (fread(&reg, sizeof(Registro), 1, arquivo) == 1) {
+            if (reg.idFilme == atual->idFilme && reg.idSessao == atual->idSessao && reg.idCadeira == atual->numero)
+            {
+                reg.status = 1;
+                strcpy(reg.comprador, comprador);
+                fseek(arquivo, -sizeof(Cadeira), SEEK_CUR);
+                fwrite(&atual, sizeof(Cadeira), 1, arquivo); // Escreve a cadeira modificada no arquivo 
+            }            
+        }
+        atual = atual->prox;
+    }
+    fclose(arquivo);    
 }
 
 /*---------------------------------------------------------------------------------------------*/

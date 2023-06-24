@@ -145,6 +145,11 @@ int estaVazia(Carrinho* c)
 }
 
 void adicionarArquivo(Carrinho* carrinho) {
+    if (estaVazia(carrinho))
+    {
+        printf("O carrinho está vazio.\n");
+        return;
+    }
     FILE* arquivo;
     switch (carrinho->inicio->idFilme)
     {

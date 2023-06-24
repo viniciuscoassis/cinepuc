@@ -76,6 +76,7 @@ Movie movies[ROWS][COL];
 
 WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
 int status[CHAIR_AMOUNT]; // Disponivel (0), ocupado (1) ou selecionado (2)
+int esvazia = 0;
 
 /*
 Inits: são usados para iniciar certas funcoes:
@@ -606,10 +607,11 @@ int main(int argc, char* argv[]) {
             curs_set(1);
             //Funcao para encerrar o modo Ncurses
             endwin();
-            mostra(carrinho);
+            //mostra(carrinho);
             //lerArquivo(carrinho.inicio->idFilme);
-            int esvazia = esvaziaCarrinho(&carrinho);
             printf("\nCadeiras liberadas: %d\n", esvazia);
+            fflush(stdout);
+            // printf("\nCadeiras liberadas: %d\n", esvazia);
         }
     }
 
@@ -1897,7 +1899,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                 //if que detecta se a coordenada do  clique é igual a coordenada do botao "Cancelar"
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
                     //se sim, volta para a tela de horarios
-                    esvaziaCarrinho(carrinho);
+                    esvazia = esvaziaCarrinho(carrinho);
                     currentScreen = TIME_SELECTION_SCREEN;
                     break;
                 }
@@ -1907,6 +1909,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
                     //se sim, vai para a tela de login
                     adicionarArquivo(carrinho);
+                    esvazia = esvaziaCarrinho(carrinho);
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     break;

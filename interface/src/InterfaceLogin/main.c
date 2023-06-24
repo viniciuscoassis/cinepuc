@@ -16,16 +16,15 @@ Para rodar o código:
 #include <SDL2/SDL_image.h>
 #include <curses.h>
 #include <string.h>
-#include "../include/cadastro.h"
+#include "cadastro.h"
+#include "carrinho.h"
 
-// Estrutura para armazenar os dados no frontend
+// Estrutura para armazenar os dados no frontend e passar pro backend
 typedef struct {
     char usuarioLogado[50];
     int idFilme;
     int idSessao;
 } dadosFrontEnd;
-
-dadosFrontEnd dados;
 
 //TELA LOGIN/REGISTRO
 //Flags para determinar a tela, o campo de escrita ou a possibidade de esconder/visualizar a senha.
@@ -75,7 +74,10 @@ Movie movies[ROWS][COL];
 #define STARTY ((LINES - TOTAL_HEIGHT) /2)  //formula para centralizar a interface verticalmente
 #define COLOR_GRAY 9
 
-WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
+typedef struct {
+    WINDOW *my_win; //Vetor de Janelas com tamanho de [número de cadeiras].
+    int status; // Disponivel (0), ocupado (1) ou selecionado (2)
+} chairNcurses;
 
 /*
 Inits: são usados para iniciar certas funcoes:
@@ -99,8 +101,8 @@ Handles: são usados para lidar com certos eventos:
     -handleMouse: lida com a utilizacao do mouse
     -handleWindow: lida com o resize da tela
 */
-void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
-void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados);
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados);
 void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font);
 
 //RENDERIZADORES: são usados para renderizar telas especificas
@@ -151,11 +153,11 @@ void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeBut
 //TELA PARA ESCOLHER OS ASSENTOS
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
-void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
+void drawChairMenu(chairNcurses* cadeira);   //função para desenhar o menu (cadeiras + letras e numeros)
 void drawTELA();  //função para criar o texto TELA
 WINDOW* drawCANCEL(); //função pra criar o botão Cancelar
 WINDOW* drawCONFIRM(); //função pra criar o botão Confirmar
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM);  //função para detectar se o mouse clicou na respectiva cadeira
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados);  //função para detectar se o mouse clicou na respectiva cadeira
 
 //Funcao cleanup usada para limpar todas as textures, surfaces entre outras coisa necessarias em SDL para evitar vazamento de memória
 void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Surface* selectTimeTextSurface, SDL_Surface* firstTimeButtonTextSurface, SDL_Surface* secondTimeButtonTextSurface, SDL_Surface* thirdTimeButtonTextSurface, SDL_Surface* fourthTimeButtonTextSurface, SDL_Texture* selectTimeTextTexture, SDL_Texture* firstTimeButtonTextTexture, SDL_Texture* secondTimeButtonTextTexture, SDL_Texture* thirdTimeButtonTextTexture, SDL_Texture* fourthTimeButtonTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
@@ -175,6 +177,9 @@ int main(int argc, char* argv[]) {
     if (!font) {
         return 1;
     }
+
+    //STRUCTS PARA INTERAGIR COM O BACKEND
+    dadosFrontEnd dados;
 
     //VARIAVEIS DE TEXTO
     //Variaveis tela de login
@@ -492,12 +497,12 @@ int main(int argc, char* argv[]) {
             //Evento para lidar com o uso de teclado
             else if (event.type == SDL_KEYDOWN || event.type == SDL_TEXTINPUT) {
                 // Handle keyboard input
-                handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
+                handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor, &dados);
             }
             //Evento para lidar com o uso de mouse
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
                 handleMouseClick(renderer, &event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
-                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
+                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor, &dados);
             }
             //Evento para lidar com o resize da tela
             else if (event.type == SDL_WINDOWEVENT) {
@@ -571,6 +576,12 @@ int main(int argc, char* argv[]) {
         }
         //ELSE IF para determinar se a tela atual eh a de selecionar assentos
         else if (currentScreen == SEAT_SELECTION_SCREEN) {
+            chairNcurses cadeira[CHAIR_AMOUNT]; //cria struct para numero de cadeiras (64)
+            for (int i = 0; i < CHAIR_AMOUNT; i++) {
+                cadeira[i].status = 0;
+            }
+            //Carrinho c;
+            //cria(&c);
             //Funcao para esconder a tela SDL
             SDL_HideWindow(window);
             //Init no Ncurses
@@ -585,14 +596,14 @@ int main(int argc, char* argv[]) {
             //Init das cores
             initColors();
             //Funcao para desenhar as cadeiras
-            drawChairMenu();
+            drawChairMenu(cadeira);
             //Funcao para desenhar a TELA abaixo das cadeiras
             drawTELA();
             //Funcoes para desenhar os botoes Cancelar e Confirmar
             WINDOW* CANCEL = drawCANCEL();
             WINDOW* CONFIRM = drawCONFIRM();
             //Funcao para determinar se alguma cadeira/botao foi clicado 
-            mouseFunc(CANCEL, CONFIRM);
+            mouseFunc(CANCEL, CONFIRM, cadeira, &dados);
 
             getch();
             //Funcao para retornar o cursor (a area de texto que fica piscando esperando pelo texto)
@@ -719,7 +730,7 @@ SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
 }
 
 //Funcao para lidar com o teclado
-void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados) {
     //TELA DE LOGIN
     if (currentScreen == LOGIN_SCREEN) {
         //BACKSPACE/APAGAR
@@ -747,7 +758,7 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                 //se o usuario for validado segue para a tela de selecionar filmes
                 currentScreen = MOVIE_SCREEN;
                 //copia o usuario logado para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                strcpy(dados.usuarioLogado, loginInputText);
+                strcpy(dados->usuarioLogado, loginInputText);
             }
             else{
                 loginBoxColor->color = RED;
@@ -870,7 +881,7 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
     }
 }
 
-void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados) {
     //IF que determina se o botão esquerdo do mouse foi clicado
     if (event->button.button == SDL_BUTTON_LEFT) {
         //variaveis para determinar onde o clique foi feito
@@ -921,7 +932,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
                     //se o usuario for validado segue para a tela de selecionar filmes
                     currentScreen = MOVIE_SCREEN;
                     //copia o usuario logado para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                    strcpy(dados.usuarioLogado, loginInputText);
+                    strcpy(dados->usuarioLogado, loginInputText);
                 }
                 else{
                     loginBoxColor->color = RED;
@@ -1024,7 +1035,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             if (mouseX >= movieRect[0][0].x && mouseX <= movieRect[0][0].x + movieRect[0][0].w &&
                 mouseY >= movieRect[0][0].y && mouseY <= movieRect[0][0].y + movieRect[0][0].h) {
                 //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                dados.idFilme = 1;
+                dados->idFilme = 1;
                 //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
             }
@@ -1032,7 +1043,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if (mouseX >= movieRect[0][1].x && mouseX <= movieRect[0][1].x + movieRect[0][1].w &&
                 mouseY >= movieRect[0][1].y && mouseY <= movieRect[0][1].y + movieRect[0][1].h) {
                 //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                dados.idFilme = 2;
+                dados->idFilme = 2;
                 //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
             }
@@ -1040,7 +1051,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if (mouseX >= movieRect[1][0].x && mouseX <= movieRect[1][0].x + movieRect[1][0].w &&
                 mouseY >= movieRect[1][0].y && mouseY <= movieRect[1][0].y + movieRect[1][0].h) {
                 //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                dados.idFilme = 3;
+                dados->idFilme = 3;
                 //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
             }
@@ -1048,7 +1059,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if (mouseX >= movieRect[1][1].x && mouseX <= movieRect[1][1].x + movieRect[1][1].w &&
                 mouseY >= movieRect[1][1].y && mouseY <= movieRect[1][1].y + movieRect[1][1].h) {
                 //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                dados.idFilme = 4;
+                dados->idFilme = 4;
                 //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
             }
@@ -1059,7 +1070,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             if(mouseX >= firstTimeButtonBoxRect->x && mouseX <= firstTimeButtonBoxRect->x + firstTimeButtonBoxRect->w &&
                 mouseY >= firstTimeButtonBoxRect->y && mouseY <= firstTimeButtonBoxRect->y + firstTimeButtonBoxRect->h){
                     //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                    dados.idSessao = 1;
+                    dados->idSessao = 1;
                     //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
@@ -1067,7 +1078,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if(mouseX >= secondTimeButtonBoxRect->x && mouseX <= secondTimeButtonBoxRect->x + secondTimeButtonBoxRect->w &&
                 mouseY >= secondTimeButtonBoxRect->y && mouseY <= secondTimeButtonBoxRect->y + secondTimeButtonBoxRect->h){
                     //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                    dados.idSessao = 2;
+                    dados->idSessao = 2;
                     //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
@@ -1075,7 +1086,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if(mouseX >= thirdTimeButtonBoxRect->x && mouseX <= thirdTimeButtonBoxRect->x + thirdTimeButtonBoxRect->w &&
                 mouseY >= thirdTimeButtonBoxRect->y && mouseY <= thirdTimeButtonBoxRect->y + thirdTimeButtonBoxRect->h){
                     //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                    dados.idSessao = 3;
+                    dados->idSessao = 3;
                     //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
@@ -1083,7 +1094,7 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
             else if(mouseX >= fourthTimeButtonBoxRect->x && mouseX <= fourthTimeButtonBoxRect->x + fourthTimeButtonBoxRect->w &&
                 mouseY >= fourthTimeButtonBoxRect->y && mouseY <= fourthTimeButtonBoxRect->y + fourthTimeButtonBoxRect->h){
                     //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
-                    dados.idSessao = 4;
+                    dados->idSessao = 4;
                     //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
@@ -1760,7 +1771,7 @@ void initColors(){
     refresh();
 }
 
-void drawChairMenu(){
+void drawChairMenu(chairNcurses* cadeira){
   int boxX, boxY;
   int counter = 0; //determina quantas cadeiras foram adicionadas
   
@@ -1785,7 +1796,7 @@ void drawChairMenu(){
             attroff(A_BOLD);
           }
           else{
-            my_win[counter] = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
+            cadeira[counter].my_win = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
             counter++;
           }
       }
@@ -1837,7 +1848,7 @@ WINDOW* drawCONFIRM(){
 }
 
 //funcao para detectar evento de mouse
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados){
     int windowCoordX, windowCoordY;
     MEVENT event;
     nodelay(stdscr, TRUE);
@@ -1849,13 +1860,14 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
                 //for para verificar todas as cadeiras
                 for (int i = 0; i < CHAIR_AMOUNT; i++){
                     //get coordenada da janela i
-                    getbegyx(my_win[i], windowCoordY, windowCoordX); 
+                    getbegyx(cadeira[i].my_win, windowCoordY, windowCoordX); 
                     //if que detecta se a coordenada do  clique é igual a coordenada da cadeira
                     if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
-                        wbkgd(my_win[i], COLOR_PAIR(3)); //mudar cadeira para vermelho
-                        wrefresh(my_win[i]);
-                        printf("%d", i);
-                        //printf("\n%s %d %d\n", dados.usuarioLogado, dados.idFilme, dados.idSessao);
+                        wbkgd(cadeira[i].my_win, COLOR_PAIR(3)); //mudar cadeira para vermelho
+                        wrefresh(cadeira[i].my_win);
+                        printf("%d", cadeira[i].status);
+                        //mvwprintw(stdscr, 0, 0, "%s %d %d", dados->usuarioLogado, dados->idFilme, dados->idSessao);
+                        mvwprintw(stdscr, 0, 0, "%d", cadeira[i].status);
                         fflush(stdout);
                     }
                 }

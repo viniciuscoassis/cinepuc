@@ -1904,6 +1904,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                 //if que detecta se a coordenada do  clique é igual a coordenada do botao "Confirmar"
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
                     //se sim, vai para a tela de login
+                    adicionarArquivo(carrinho);
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     break;

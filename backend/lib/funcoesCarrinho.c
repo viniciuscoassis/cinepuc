@@ -143,3 +143,48 @@ int estaVazia(Carrinho* c)
 {
     return c->inicio == NULL;
 }
+
+void adicionarArquivo(Carrinho* carrinho) {
+    FILE* arquivo;
+    switch (carrinho->inicio->idFilme)
+    {
+    case 1:
+        arquivo = fopen("cadeirasSMB.bin", "ab");
+        break;
+    case 2:
+        arquivo = fopen("cadeirasGDG.bin", "ab");
+        break;
+    case 3:
+        arquivo = fopen("cadeirasVFX.bin", "ab");
+        break;
+    case 4:
+        arquivo = fopen("cadeirasAVT.bin", "ab");
+        break;
+    }
+    Registro registro;
+
+    if (arquivo == NULL) {
+        printf("Não foi possível abrir o arquivo.\n");
+        return;
+    }
+
+    Cadeira* cadeiraAtual = carrinho->inicio;
+
+    while (cadeiraAtual != NULL)
+    {
+        registro.idFilme = cadeiraAtual->idFilme;
+        registro.idSessao = cadeiraAtual->idSessao;
+        registro.idCadeira = cadeiraAtual->numero;
+        registro.status = 1; // Status disponível
+        strcpy(registro.comprador, cadeiraAtual->comprador ); // Comprador vazio
+        fwrite(&cadeiraAtual, sizeof(Cadeira), 1, arquivo);
+        cadeiraAtual = cadeiraAtual->prox;
+    }
+
+    printf("Sessões adicionadas com sucesso!\n");
+
+    // Fecha o arquivo
+    fclose(arquivo);
+}
+
+

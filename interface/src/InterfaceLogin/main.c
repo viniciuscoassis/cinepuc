@@ -16,16 +16,15 @@ Para rodar o código:
 #include <SDL2/SDL_image.h>
 #include <curses.h>
 #include <string.h>
-#include "../include/cadastro.h"
+#include "cadastro.h"
+#include "carrinho.h"
 
-// Estrutura para armazenar os dados no frontend
+// Estrutura para armazenar os dados no frontend e passar pro backend
 typedef struct {
     char usuarioLogado[50];
     int idFilme;
     int idSessao;
 } dadosFrontEnd;
-
-dadosFrontEnd dados;
 
 //TELA LOGIN/REGISTRO
 //Flags para determinar a tela, o campo de escrita ou a possibidade de esconder/visualizar a senha.
@@ -75,7 +74,10 @@ Movie movies[ROWS][COL];
 #define STARTY ((LINES - TOTAL_HEIGHT) /2)  //formula para centralizar a interface verticalmente
 #define COLOR_GRAY 9
 
-WINDOW *my_win[CHAIR_AMOUNT]; //Vetor de Janelas com tamanho de [número de cadeiras].
+typedef struct {
+    WINDOW *my_win; //Vetor de Janelas com tamanho de [número de cadeiras].
+    int status; // Disponivel (0), ocupado (1) ou selecionado (2)
+} chairNcurses;
 
 /*
 Inits: são usados para iniciar certas funcoes:
@@ -99,8 +101,8 @@ Handles: são usados para lidar com certos eventos:
     -handleMouse: lida com a utilizacao do mouse
     -handleWindow: lida com o resize da tela
 */
-void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
-void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor);
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados);
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados);
 void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font);
 
 //RENDERIZADORES: são usados para renderizar telas especificas
@@ -151,11 +153,11 @@ void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeBut
 //TELA PARA ESCOLHER OS ASSENTOS
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
-void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
+void drawChairMenu(chairNcurses* cadeira);   //função para desenhar o menu (cadeiras + letras e numeros)
 void drawTELA();  //função para criar o texto TELA
 WINDOW* drawCANCEL(); //função pra criar o botão Cancelar
 WINDOW* drawCONFIRM(); //função pra criar o botão Confirmar
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM);  //função para detectar se o mouse clicou na respectiva cadeira
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados);  //função para detectar se o mouse clicou na respectiva cadeira
 
 //Funcao cleanup usada para limpar todas as textures, surfaces entre outras coisa necessarias em SDL para evitar vazamento de memória
 void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Surface* selectTimeTextSurface, SDL_Surface* firstTimeButtonTextSurface, SDL_Surface* secondTimeButtonTextSurface, SDL_Surface* thirdTimeButtonTextSurface, SDL_Surface* fourthTimeButtonTextSurface, SDL_Texture* selectTimeTextTexture, SDL_Texture* firstTimeButtonTextTexture, SDL_Texture* secondTimeButtonTextTexture, SDL_Texture* thirdTimeButtonTextTexture, SDL_Texture* fourthTimeButtonTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer);
@@ -175,6 +177,9 @@ int main(int argc, char* argv[]) {
     if (!font) {
         return 1;
     }
+
+    //STRUCTS PARA INTERAGIR COM O BACKEND
+    dadosFrontEnd dados;
 
     //VARIAVEIS DE TEXTO
     //Variaveis tela de login
@@ -492,12 +497,12 @@ int main(int argc, char* argv[]) {
             //Evento para lidar com o uso de teclado
             else if (event.type == SDL_KEYDOWN || event.type == SDL_TEXTINPUT) {
                 // Handle keyboard input
-                handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
+                handleKeyboardInput(renderer, &event, window, loginInputText, passwordInputText, passwordMask, confirmPasswordInputText, confirmPasswordMask, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor, &dados);
             }
             //Evento para lidar com o uso de mouse
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
                 handleMouseClick(renderer, &event, &loginBoxRect, &passwordBoxRect, &confirmPasswordBoxRect, &cancelButtonBoxRect, &loginButtonBoxRect, &registerButtonBoxRect, &viewImageRect,
-                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor);
+                &hideImageRect, &confirmViewImageRect, &confirmHideImageRect, movieRect, &firstTimeButtonBoxRect, &secondTimeButtonBoxRect, &thirdTimeButtonBoxRect, &fourthTimeButtonBoxRect, loginInputText, passwordInputText, confirmPasswordInputText, passwordMask, confirmPasswordMask, &quit, &loginBoxColor, &passwordBoxColor, &confirmPasswordBoxColor, &dados);
             }
             //Evento para lidar com o resize da tela
             else if (event.type == SDL_WINDOWEVENT) {
@@ -571,6 +576,12 @@ int main(int argc, char* argv[]) {
         }
         //ELSE IF para determinar se a tela atual eh a de selecionar assentos
         else if (currentScreen == SEAT_SELECTION_SCREEN) {
+            chairNcurses cadeira[CHAIR_AMOUNT]; //cria struct para numero de cadeiras (64)
+            for (int i = 0; i < CHAIR_AMOUNT; i++) {
+                cadeira[i].status = 0;
+            }
+            //Carrinho c;
+            //cria(&c);
             //Funcao para esconder a tela SDL
             SDL_HideWindow(window);
             //Init no Ncurses
@@ -585,14 +596,14 @@ int main(int argc, char* argv[]) {
             //Init das cores
             initColors();
             //Funcao para desenhar as cadeiras
-            drawChairMenu();
+            drawChairMenu(cadeira);
             //Funcao para desenhar a TELA abaixo das cadeiras
             drawTELA();
             //Funcoes para desenhar os botoes Cancelar e Confirmar
             WINDOW* CANCEL = drawCANCEL();
             WINDOW* CONFIRM = drawCONFIRM();
             //Funcao para determinar se alguma cadeira/botao foi clicado 
-            mouseFunc(CANCEL, CONFIRM);
+            mouseFunc(CANCEL, CONFIRM, cadeira, &dados);
 
             getch();
             //Funcao para retornar o cursor (a area de texto que fica piscando esperando pelo texto)
@@ -692,7 +703,7 @@ SDL_Texture* initImage(SDL_Window* window, SDL_Renderer* renderer, char* link){
 SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, char* text, SDL_Color textColor) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, textColor);
     if (!surface) {
-        SDL_Log("Failed to create text surface: %s", TTF_GetError());
+        SDL_Log("Falha ao criar Surface: %s", TTF_GetError());
         TTF_CloseFont(font);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
@@ -707,7 +718,7 @@ SDL_Surface* initSurface(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
 SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* font, SDL_Surface* surface) {
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     if (!texture) {
-        SDL_Log("Failed to create text textures: %s", SDL_GetError());
+        SDL_Log("Falha ao criar Texture: %s", SDL_GetError());
         TTF_CloseFont(font);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
@@ -719,7 +730,7 @@ SDL_Texture* initTexture(SDL_Window* window, SDL_Renderer* renderer, TTF_Font* f
 }
 
 //Funcao para lidar com o teclado
-void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
+void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* window, char* loginInputText, char* passwordInputText, char* passwordMask, char* confirmPasswordInputText, char* confirmPasswordMask, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados) {
     //TELA DE LOGIN
     if (currentScreen == LOGIN_SCREEN) {
         //BACKSPACE/APAGAR
@@ -738,6 +749,7 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
         }
         //ENTER
         else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
+            //printf para mostrar os dados inseridos
             printf("Login: %s\n", loginInputText);
             printf("Senha: %s\n", passwordInputText);
             fflush(stdout);
@@ -745,7 +757,12 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
             if(validarUsuario(loginInputText, passwordInputText)){ //funcao do backend
                 //se o usuario for validado segue para a tela de selecionar filmes
                 currentScreen = MOVIE_SCREEN;
-                strcpy(dados.usuarioLogado, loginInputText);
+                //copia o usuario logado para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                strcpy(dados->usuarioLogado, loginInputText);
+            }
+            else{
+                loginBoxColor->color = RED;
+                passwordBoxColor->color = RED;
             }
         }
         //TAB
@@ -804,7 +821,8 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                 //SALVA USUARIO NO ARQUIVO
                 int verificar = salvarUsuarioArquivo(loginInputText, passwordInputText);
                 //verifica se o nome de usuario existe ou nao
-                //se ja existir a cor da caixa de login muda para vermelho
+                //se ja existir, a cor da caixa de login muda para vermelho
+                //se nao, voltamos para tela de Login
                 if(verificar == 0){
                     printf("Usuario repetido.\n");
                     loginBoxColor->color = RED;
@@ -813,7 +831,6 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                     printf("Usuario cadastrado com sucesso.\n");
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
-                    showPassword = SHOW;
                 }
             }
             else{
@@ -824,6 +841,7 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
         }
         //TAB
         else if (event->key.keysym.sym == SDLK_TAB) {
+            //se estiver no campo de login e apertar tab, muda para o campo de senha, se estiver no campo de senha muda para o de confirma senha, alternando entre si
             if (activeField == LOGIN_FIELD) {
                 activeField = PASSWORD_FIELD;
             }
@@ -834,207 +852,250 @@ void handleKeyboardInput(SDL_Renderer* renderer, SDL_Event* event, SDL_Window* w
                 activeField = LOGIN_FIELD;
             }
         }
+        //Os proximos 3 ELSE IFs sao usados para realizar o armazenamento do input realizado na tela
+        //CAIXA DE LOGIN
         else if (activeField == LOGIN_FIELD && strlen(loginInputText) < MAX_TEXT_LENGTH) {
-            // Append the entered character to the login input
+            //Concatena a letra digitada na tela na string loginInputText
             if (event->type == SDL_TEXTINPUT) {
                 strcat(loginInputText, event->text.text);
             }
         }
+        //CAIXA DA SENHA
         else if (activeField == PASSWORD_FIELD && strlen(passwordInputText) < MAX_TEXT_LENGTH) {
-            // Append the entered character to the password input
             if (event->type == SDL_TEXTINPUT) {
+                //Concatena a letra digitada na tela na string passwordInputText
                 strcat(passwordInputText, event->text.text);
+                //Concatena um asterisco ("*") na passwordMask (usado para esconder a senha)
                 strcat(passwordMask, "*");
             }
         }
+        //SEGUNDA CAIXA DA SENHA (confirma senha)
         else if (activeField == CONFIRM_FIELD && strlen(confirmPasswordInputText) < MAX_TEXT_LENGTH) {
-            // Append the entered character to the confirm password input
             if (event->type == SDL_TEXTINPUT) {
+                //Concatena a letra digitada na tela na string confirmPasswordInputText
                 strcat(confirmPasswordInputText, event->text.text);
+                //Concatena um asterisco ("*") na confirmPasswordMask (usado para esconder a segunda senha (confirma senha))
                 strcat(confirmPasswordMask, "*");
             }
         }
     }
 }
 
-void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
+void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect movieRect[][COL], SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, char* loginInputText, char* passwordInputText, char* confirmPasswordInputText, char* passwordMask, char* confirmPasswordMask, int* quit, Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor, dadosFrontEnd* dados) {
+    //IF que determina se o botão esquerdo do mouse foi clicado
     if (event->button.button == SDL_BUTTON_LEFT) {
+        //variaveis para determinar onde o clique foi feito
         int mouseX = event->button.x;
         int mouseY = event->button.y;
 
+        //TELA DE LOGIN
         if (currentScreen == LOGIN_SCREEN) {
-            // Check if the click is within the login box
+            //Verifica se o clique foi dentro da caixa de login
             if (mouseX >= loginBoxRect->x && mouseX <= loginBoxRect->x + loginBoxRect->w &&
                 mouseY >= loginBoxRect->y && mouseY <= loginBoxRect->y + loginBoxRect->h) {
                 activeField = LOGIN_FIELD;
+                loginBoxColor->color = BLACK;
+                passwordBoxColor->color = BLACK;
             }
-            //Check if the click is within the view Image
+            //Verifica se o clique foi dentro da imagem para mostrar a senha (Olho)
             else if (mouseX >= viewImageRect->x && mouseX <= viewImageRect->x + viewImageRect->w &&
                 mouseY >= viewImageRect->y && mouseY <= viewImageRect->y + viewImageRect->h && showPassword == HIDE) {
                 showPassword = SHOW;
             }
-            //Check if the click is within the hide Image
+            //Verifica se o clique foi dentro da imagem para esconder a senha (Olho)
             else if (mouseX >= hideImageRect->x && mouseX <= hideImageRect->x + hideImageRect->w &&
                 mouseY >= hideImageRect->y && mouseY <= hideImageRect->y + hideImageRect->h && showPassword == SHOW) {
                 showPassword = HIDE;
             }
-            // Check if the click is within the password box
+            //Verifica se o clique foi dentro da caixa de senha
             else if (mouseX >= passwordBoxRect->x && mouseX <= passwordBoxRect->x + passwordBoxRect->w &&
                 mouseY >= passwordBoxRect->y && mouseY <= passwordBoxRect->y + passwordBoxRect->h) {
                 activeField = PASSWORD_FIELD;
+                loginBoxColor->color = BLACK;
+                passwordBoxColor->color = BLACK;
             }
-            // Check if the click in within the cancel button box
+            //Verifica se o clique foi dentro do botao "Cancelar"
             else if (mouseX >= cancelButtonBoxRect->x && mouseX <= cancelButtonBoxRect->x + cancelButtonBoxRect->w &&
                 mouseY >= cancelButtonBoxRect->y && mouseY <= cancelButtonBoxRect->y + cancelButtonBoxRect->h) {
+                //Encerra a aplicacao
                 *quit = 1;
             }
-            //Check if the click is within the confirm button box
+            //Verifica se o clique foi dentro do botao "Confirmar"
             else if (mouseX >= loginButtonBoxRect->x && mouseX <= loginButtonBoxRect->x + loginButtonBoxRect->w &&
                 mouseY >= loginButtonBoxRect->y && mouseY <= loginButtonBoxRect->y + loginButtonBoxRect->h) {
-                printf("Entered login: %s\n", loginInputText);
-                printf("Entered password: %s\n", passwordInputText);
+                //printf para mostrar os dados inseridos
+                printf("Login: %s\n", loginInputText);
+                printf("Senha: %s\n", passwordInputText);
                 fflush(stdout);
-                if(validarUsuario(loginInputText, passwordInputText)){
+                //Funcao para validar o usuario (ver se a o login/email e senha estao corretos)
+                if(validarUsuario(loginInputText, passwordInputText)){ //funcao do backend
+                    //se o usuario for validado segue para a tela de selecionar filmes
                     currentScreen = MOVIE_SCREEN;
-                    strcpy(dados.usuarioLogado, loginInputText);
+                    //copia o usuario logado para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                    strcpy(dados->usuarioLogado, loginInputText);
+                }
+                else{
+                    loginBoxColor->color = RED;
+                    passwordBoxColor->color = RED;
                 }
             }
-            //Check if the click is within the register button box
+            //Verifica se o clique foi dentro do botao "Cadastrar"
             else if (mouseX >= registerButtonBoxRect->x && mouseX <= registerButtonBoxRect->x + registerButtonBoxRect->w &&
                 mouseY >= registerButtonBoxRect->y && mouseY <= registerButtonBoxRect->y + registerButtonBoxRect->h) {
                 fflush(stdout);
+                //muda para a tela de cadastro
                 currentScreen = REGISTER_SCREEN;
+                //limpa as entradas de texto
                 clearInput = CLEAR;
-                showPassword = SHOW;
-                showConfirmPassword = SHOW_CONFIRM;
             }
         }
+        //TELA DE REGISTRO
         else if (currentScreen == REGISTER_SCREEN) {
-            // Check if the click is within the login box
+            //Verifica se o clique foi dentro da caixa de login
             if (mouseX >= loginBoxRect->x && mouseX <= loginBoxRect->x + loginBoxRect->w &&
                 mouseY >= loginBoxRect->y && mouseY <= loginBoxRect->y + loginBoxRect->h) {
                 activeField = LOGIN_FIELD;
                 loginBoxColor->color = BLACK;
             }
-            //Check if the click is within the view Image
+            //Verifica se o clique foi dentro da imagem (Olho) para mostrar a senha
             else if (mouseX >= viewImageRect->x && mouseX <= viewImageRect->x + viewImageRect->w &&
                 mouseY >= viewImageRect->y && mouseY <= viewImageRect->y + viewImageRect->h && showPassword == HIDE) {
                 showPassword = SHOW;
             }
-            //Check if the click is within the hide Image
+            //Verifica se o clique foi dentro da imagem (Olho) para esconder a senha
             else if (mouseX >= hideImageRect->x && mouseX <= hideImageRect->x + hideImageRect->w &&
                 mouseY >= hideImageRect->y && mouseY <= hideImageRect->y + hideImageRect->h && showPassword == SHOW) {
                 showPassword = HIDE;
             }
-            //Check if the click is within the Register view Image
+            //Verifica se o clique foi dentro da imagem (Olho) para mostrar a SEGUNDA senha (confirma senha) 
             else if (mouseX >= confirmViewImageRect->x && mouseX <= confirmViewImageRect->x + confirmViewImageRect->w &&
                 mouseY >= confirmViewImageRect->y && mouseY <= confirmViewImageRect->y + confirmViewImageRect->h && showConfirmPassword == HIDE) {
                 showConfirmPassword = SHOW;
             }
-            //Check if the click is within the Register hide Image
+            //Verifica se o clique foi dentro da imagem (Olho) para esconder a SEGUNDA senha (confirma senha)
             else if (mouseX >= confirmHideImageRect->x && mouseX <= confirmHideImageRect->x + confirmHideImageRect->w &&
                 mouseY >= confirmHideImageRect->y && mouseY <= confirmHideImageRect->y + confirmHideImageRect->h && showConfirmPassword == SHOW) {
                 showConfirmPassword = HIDE;
             }
-            // Check if the click is within the password box
+            //Verifica se o clique foi dentro da caixa de senha
             else if (mouseX >= passwordBoxRect->x && mouseX <= passwordBoxRect->x + passwordBoxRect->w &&
                 mouseY >= passwordBoxRect->y && mouseY <= passwordBoxRect->y + passwordBoxRect->h) {
                 activeField = PASSWORD_FIELD;
                 passwordBoxColor->color = BLACK;
             }
-            // Check if the click is within the confirm password box
+            //Verifica se o clique foi dentro da segunda caixa de senha (confirma senha)
             else if (mouseX >= confirmPasswordBoxRect->x && mouseX <= confirmPasswordBoxRect->x + confirmPasswordBoxRect->w &&
                 mouseY >= confirmPasswordBoxRect->y && mouseY <= confirmPasswordBoxRect->y + confirmPasswordBoxRect->h) {
                 activeField = CONFIRM_FIELD;
                 confirmPasswordBoxColor->color = BLACK;
             }
-            // Check if the click in within the cancel button box
+            //Verifica se o clique foi dentro do botao "Cancelar"
             else if (mouseX >= cancelButtonBoxRect->x && mouseX <= cancelButtonBoxRect->x + cancelButtonBoxRect->w &&
                 mouseY >= cancelButtonBoxRect->y && mouseY <= cancelButtonBoxRect->y + cancelButtonBoxRect->h) {
+                //retorna para a tela de login
                 currentScreen = LOGIN_SCREEN;
+                //limpa as entradas de texto
                 clearInput = CLEAR;
-                showPassword = SHOW;
             }
-            //Check if the click is within the confirm button box
+            //Verifica se o clique foi dentro do botao "Confirmar"
             else if (mouseX >= loginButtonBoxRect->x && mouseX <= loginButtonBoxRect->x + loginButtonBoxRect->w &&
                 mouseY >= loginButtonBoxRect->y && mouseY <= loginButtonBoxRect->y + loginButtonBoxRect->h) {
-                // Handle the password input logic here
+                //mostra os dados usados no cadastro
                 printf("Entered login: %s\n", loginInputText);
                 printf("Entered password: %s\n", passwordInputText);
                 printf("Entered confirm password: %s\n", confirmPasswordInputText);
                 fflush(stdout);
+                //verifica se a senha digitada na primeira e na segunda caixa sao iguais
                 if(strcmp(passwordInputText, confirmPasswordInputText) == 0) {
+                    //Salva o usuario no arquivo e tem como retorno 0 (se o usuario ja existe) ou 1 (cadastro com sucesso)
                     int verificar = salvarUsuarioArquivo(loginInputText, passwordInputText);
+                    //verifica se o usuario ja existe
                     if(verificar == 0){
                         printf("Usuario repetido.\n");
+                        //muda a caixa de login para vermelho (para demonstrar que o erro eh no login)
                         loginBoxColor->color = RED;
                     }
                     else if(verificar == 1){
+                        //cadastro com sucesso, volta para a tela de login
                         printf("Usuario cadastrado com sucesso.\n");
                         currentScreen = LOGIN_SCREEN;
                         clearInput = CLEAR;
-                        showPassword = SHOW;
                     }
                 }
                 else{
+                    //muda as caixas das senhas para vermelho (para demonstrar que o erro eh na senha)
                     passwordBoxColor->color = RED;
                     confirmPasswordBoxColor->color = RED;
                 }
             }
         }
+        //TELA PARA SELECIONAR FILME
         else if (currentScreen == MOVIE_SCREEN) {
+            //Verifica se o clique foi na primeira imagem/filme
             if (mouseX >= movieRect[0][0].x && mouseX <= movieRect[0][0].x + movieRect[0][0].w &&
                 mouseY >= movieRect[0][0].y && mouseY <= movieRect[0][0].y + movieRect[0][0].h) {
-                dados.idFilme = 1;
+                //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                dados->idFilme = 1;
+                //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
-                printf("TIME SELECTION SCREEN\n");
-                fflush(stdout);
             }
+            //Verifica se o clique foi na segunda imagem/filme
             else if (mouseX >= movieRect[0][1].x && mouseX <= movieRect[0][1].x + movieRect[0][1].w &&
                 mouseY >= movieRect[0][1].y && mouseY <= movieRect[0][1].y + movieRect[0][1].h) {
-                dados.idFilme = 2;
+                //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                dados->idFilme = 2;
+                //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
-                printf("TIME SELECTION SCREEN\n");
-                fflush(stdout);
             }
+            //Verifica se o clique foi na terceira imagem/filme
             else if (mouseX >= movieRect[1][0].x && mouseX <= movieRect[1][0].x + movieRect[1][0].w &&
                 mouseY >= movieRect[1][0].y && mouseY <= movieRect[1][0].y + movieRect[1][0].h) {
-                dados.idFilme = 3;
+                //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                dados->idFilme = 3;
+                //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
-                printf("TIME SELECTION SCREEN\n");
-                fflush(stdout);
             }
+            //Verifica se o clique foi na quarta imagem/filme
             else if (mouseX >= movieRect[1][1].x && mouseX <= movieRect[1][1].x + movieRect[1][1].w &&
                 mouseY >= movieRect[1][1].y && mouseY <= movieRect[1][1].y + movieRect[1][1].h) {
-                dados.idFilme = 4;
+                //copia o id do filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                dados->idFilme = 4;
+                //muda para a tela de selecionar horarios
                 currentScreen = TIME_SELECTION_SCREEN;
-                printf("TIME SELECTION SCREEN\n");
-                fflush(stdout);
             }
         }
+        //TELA DE SELECIONAR HORARIOS
         else if (currentScreen == TIME_SELECTION_SCREEN) {
+            //verifica se o clique foi no primeiro horario
             if(mouseX >= firstTimeButtonBoxRect->x && mouseX <= firstTimeButtonBoxRect->x + firstTimeButtonBoxRect->w &&
                 mouseY >= firstTimeButtonBoxRect->y && mouseY <= firstTimeButtonBoxRect->y + firstTimeButtonBoxRect->h){
-                    dados.idSessao = 1;
-                    fflush(stdout);
+                    //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                    dados->idSessao = 1;
+                    //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
+            //verifica se o clique foi no segundo horario
             else if(mouseX >= secondTimeButtonBoxRect->x && mouseX <= secondTimeButtonBoxRect->x + secondTimeButtonBoxRect->w &&
                 mouseY >= secondTimeButtonBoxRect->y && mouseY <= secondTimeButtonBoxRect->y + secondTimeButtonBoxRect->h){
-                    dados.idSessao = 2;
-                    fflush(stdout);
+                    //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                    dados->idSessao = 2;
+                    //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
+            //verifica se o clique foi no terceiro horario
             else if(mouseX >= thirdTimeButtonBoxRect->x && mouseX <= thirdTimeButtonBoxRect->x + thirdTimeButtonBoxRect->w &&
                 mouseY >= thirdTimeButtonBoxRect->y && mouseY <= thirdTimeButtonBoxRect->y + thirdTimeButtonBoxRect->h){
-                    dados.idSessao = 3;
-                    fflush(stdout);
+                    //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                    dados->idSessao = 3;
+                    //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
+            //verifica se o clique foi no quarto horario
             else if(mouseX >= fourthTimeButtonBoxRect->x && mouseX <= fourthTimeButtonBoxRect->x + fourthTimeButtonBoxRect->w &&
                 mouseY >= fourthTimeButtonBoxRect->y && mouseY <= fourthTimeButtonBoxRect->y + fourthTimeButtonBoxRect->h){
-                    dados.idSessao = 4;
-                    fflush(stdout);
+                    //copia o id da sessao/filme para a struct dados (sera utilizada para armazenar o ingresso no email/login)
+                    dados->idSessao = 4;
+                    //muda para a tela de selecionar Assentos
                     currentScreen = SEAT_SELECTION_SCREEN;
             }
             else if (mouseX >= cancelButtonBoxRect->x && mouseX <= cancelButtonBoxRect->x + cancelButtonBoxRect->w &&
@@ -1042,28 +1103,33 @@ void handleMouseClick(SDL_Renderer* renderer, SDL_Event* event, SDL_Rect* loginB
                 currentScreen = MOVIE_SCREEN;
             }
         }
-        else if (currentScreen == SEAT_SELECTION_SCREEN) {
-            //
-        }
     }
 }
 
 void handleWindowEvent(SDL_Event* event, SDL_Window *window, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cinepucImageRect, SDL_Rect* registerButtonBoxRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font) {
+    //evento para verificar se a tela teve algum resize
     if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-        // Window resized, re-center the HUD
+        //get novo tamanho da tela
         SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+        //TELA DE LOGIN
         if (currentScreen == LOGIN_SCREEN) {
+            //centraliza a hud de acordo com o nov tamanho da tela
             centerLoginHUD(cinepucImageRect, viewImageRect, hideImageRect, loginBoxRect, passwordBoxRect, loginButtonBoxRect, cancelButtonBoxRect, registerButtonBoxRect, windowWidth, windowHeight);
         }
+        //TELA DE CADASTRO
         else if (currentScreen == REGISTER_SCREEN) {
+            //centraliza a hud de acordo com o nov tamanho da tela
             centerRegisterHUD(cinepucImageRect, viewImageRect, hideImageRect, confirmViewImageRect, confirmHideImageRect, loginBoxRect, passwordBoxRect, confirmPasswordBoxRect, loginButtonBoxRect, cancelButtonBoxRect, windowWidth, windowHeight);
         }
+        //TELA DE SELECIONAR FILMES
         else if (currentScreen == MOVIE_SCREEN) {
+            //centraliza a hud de acordo com o nov tamanho da tela
             centerMovieHUD(windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, selectMovieRect, movieRect, textRect, renderer, font);
         }
     }
 }
 
+//RENDERIZAR A TELA DE LOGIN
 void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect, SDL_Rect registerButtonBoxRect,
@@ -1071,11 +1137,11 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
             SDL_Surface* loginInputTextSurface, SDL_Texture* loginInputTextTexture, SDL_Surface* passwordInputTextSurface, SDL_Texture* passwordInputTextTexture,
             char* passwordInputText, char* loginInputText, int loginTextHeight, int loginTextWidth, int passwordTextHeight, int passwordTextWidth, char* passwordMask,
             int cancelButtonTextHeight, int cancelButtonTextWidth, int loginButtonTextHeight, int loginButtonTextWidth, int registerButtonTextHeight, int registerButtonTextWidth, Box* loginBoxColor, Box* passwordBoxColor) {
-    // Clear the screen
+    //Limpa a tela
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
     SDL_RenderClear(renderer);
 
-    //Clear the input text
+    //Limpa os inputs de texto + cor das caixas + mostrar/esconder senha
     if(clearInput == CLEAR) {
         strcpy(loginInputText, "");
         strcpy(passwordInputText, "");
@@ -1087,149 +1153,169 @@ void renderLoginScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textCol
         clearInput = DONT_CLEAR;
     }
 
-    // Render the login box border
+    //Renderiza a caixa de Login de acordo com a cor necessaria
     if(loginBoxColor->color == BLACK){
-        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     }
     else if(loginBoxColor->color == RED){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Vermelho
     }
     SDL_RenderDrawRect(renderer, &loginBoxRect);
 
-    //Render the cinepuc image
+    //Renderiza a imagem Cinepuc
     SDL_RenderCopy(renderer, cinepucImage, NULL, &cinepucImageRect);
 
-    //Render the view image
+    //Renderiza a imagem do olho
     if(showPassword == SHOW){
         SDL_RenderCopy(renderer, viewImage, NULL, &viewImageRect);
     }
-    //Render the hide image
+    //Renderiza a image do outro olho
     else if(showPassword == HIDE){
         SDL_RenderCopy(renderer, hideImage, NULL, &hideImageRect);
     }
 
-    // Render the login text
+    //Determina a posicao do texto "E-mail"
+    SDL_Rect loginTextRect = { loginBoxRect.x, loginBoxRect.y - loginTextHeight, loginTextWidth, loginTextHeight };
+    //Renderiza o texto "E-mail:" logo acima da caixa de input para o login/email
+    SDL_RenderCopy(renderer, loginTextTexture, NULL, &loginTextRect);
+    //Variaveis para determinar onde sera colocado o input text da caixa login
     int loginTextPosX = loginBoxRect.x + 10;
     int loginTextPosY = loginBoxRect.y + (loginBoxRect.h - loginTextHeight) / 2;
-    SDL_Rect loginTextRect = { loginBoxRect.x, loginBoxRect.y - loginTextHeight, loginTextWidth, loginTextHeight };
-    SDL_RenderCopy(renderer, loginTextTexture, NULL, &loginTextRect);
 
-    // Render the login input text if it's not empty
+    //If necessario pois quando tentamos renderizar um texto vazio ocorre o erro: Segmentation fault (core dumped)
     if (strlen(loginInputText) > 0) {
+        //Cria a surface para o input text da caixa login
         loginInputTextSurface = TTF_RenderText_Solid(font, loginInputText, textColor);
         if (!loginInputTextSurface) {
-            SDL_Log("Failed to create login input text surface: %s", TTF_GetError());
+            SDL_Log("Falha ao criar Surface: %s", TTF_GetError());
             return;
         }
-
+        
+        //Cria a texture para o input text da caixa login
         loginInputTextTexture = SDL_CreateTextureFromSurface(renderer, loginInputTextSurface);
         if (!loginInputTextTexture) {
-            SDL_Log("Failed to create login input text texture: %s", SDL_GetError());
+            SDL_Log("Falha ao criar Texture %s", SDL_GetError());
             SDL_FreeSurface(loginInputTextSurface);
             loginInputTextSurface = NULL;
             return;
         }
 
+        //Variaveis para determinar o tamanho do texto
         int loginInputTextWidth = loginInputTextSurface->w;
         int loginInputTextHeight = loginInputTextSurface->h;
+        //Posiciona a caixa de acordo com as variaveis criadas acima do if
         SDL_Rect loginInputTextRect = { loginTextPosX, loginTextPosY, loginInputTextWidth, loginInputTextHeight };
+        //Renderiza o texto de input da caixa de login
         SDL_RenderCopy(renderer, loginInputTextTexture, NULL, &loginInputTextRect);
     }
 
-    // Render the password box border
+    //Renderiza a caixa de senha de acordo com a cor necessaria
     if(passwordBoxColor->color == BLACK){
-        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     }
     else if(passwordBoxColor->color == RED){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Vermelho
     }
     SDL_RenderDrawRect(renderer, &passwordBoxRect);
 
-    // Render the password text
+    //Determina a posicao do texto "Senha:"
+    SDL_Rect passwordTextRect = { passwordBoxRect.x, passwordBoxRect.y - passwordTextHeight, passwordTextWidth, passwordTextHeight };
+    //Renderiza o texto "Senha:"
+    SDL_RenderCopy(renderer, passwordTextTexture, NULL, &passwordTextRect);
+    //Variaveis para determinar onde sera colocado o input text da caixa senha
     int passwordTextPosX = passwordBoxRect.x + 10;
     int passwordTextPosY = passwordBoxRect.y + (passwordBoxRect.h - passwordTextHeight) / 2;
-    SDL_Rect passwordTextRect = { passwordBoxRect.x, passwordBoxRect.y - passwordTextHeight, passwordTextWidth, passwordTextHeight };
-    SDL_RenderCopy(renderer, passwordTextTexture, NULL, &passwordTextRect);
 
-    // Render the password input text if it's not empty
+    //If necessario pois quando tentamos renderizar um texto vazio ocorre o erro: Segmentation fault (core dumped)
     if (strlen(passwordInputText) > 0) {
+        //Cria a surface para o input text da caixa senha, baseado na opcao do usuario de querer mostrar ou nao a senha
         if(showPassword == SHOW)
+            //se nao quiser mostrar, cria a surface dos asteriscos
             passwordInputTextSurface = TTF_RenderText_Solid(font, passwordMask, textColor);
         else if (showPassword == HIDE)
+            //se quiser mostrar, cria a surface da propria senha
             passwordInputTextSurface = TTF_RenderText_Solid(font, passwordInputText, textColor);
 
         if (!passwordInputTextSurface) {
-            SDL_Log("Failed to create password input text surface: %s", TTF_GetError());
+            SDL_Log("Falha ao criar Surface: %s", TTF_GetError());
             return;
         }
 
+        //Cria a texture para o input text da caixa senha, baseado na escolha de Surface acima
         passwordInputTextTexture = SDL_CreateTextureFromSurface(renderer, passwordInputTextSurface);
         if (!passwordInputTextTexture) {
-            SDL_Log("Failed to create password input text texture: %s", SDL_GetError());
+            SDL_Log("Falha ao criar Texture: %s", SDL_GetError());
             SDL_FreeSurface(passwordInputTextSurface);
             passwordInputTextSurface = NULL;
             return;
         }
 
+        //Variaveis para determinar o tamanho do texto
         int passwordInputTextWidth = passwordInputTextSurface->w;
         int passwordInputTextHeight = passwordInputTextSurface->h;
+        //Posiciona a caixa de acordo com o texto "Senha:" (no caso logo abaixo)
         SDL_Rect passwordInputTextRect = { passwordTextPosX, passwordTextPosY, passwordInputTextWidth, passwordInputTextHeight };
+        //Renderiza o texto de input da caixa de senha
         SDL_RenderCopy(renderer, passwordInputTextTexture, NULL, &passwordInputTextRect);
     }
 
+    //Posiciona e faz uma copia do render do botao "Cancelar"
     SDL_Rect cancelButtonTextRect = { cancelButtonBoxRect.x + (cancelButtonBoxRect.w - cancelButtonTextWidth) / 2, cancelButtonBoxRect.y + (cancelButtonBoxRect.h - cancelButtonTextHeight) / 2, cancelButtonTextWidth, cancelButtonTextHeight };
     SDL_RenderCopy(renderer, cancelButtonTextTexture, NULL, &cancelButtonTextRect);
 
+    //Posiciona e faz uma copia do render do botao "Confirmar"
     SDL_Rect loginButtonTextRect = { loginButtonBoxRect.x + (loginButtonBoxRect.w - loginButtonTextWidth) / 2, loginButtonBoxRect.y + (loginButtonBoxRect.h - loginButtonTextHeight) / 2, loginButtonTextWidth, loginButtonTextHeight };
     SDL_RenderCopy(renderer, loginButtonTextTexture, NULL, &loginButtonTextRect);
 
+    //Posiciona e faz uma copia do render do botao "Cadastrar"
     SDL_Rect registerButtonTextRect = { registerButtonBoxRect.x + (registerButtonBoxRect.w - registerButtonTextWidth) / 2, registerButtonBoxRect.y + (registerButtonBoxRect.h - registerButtonTextHeight) / 2, registerButtonTextWidth, registerButtonTextHeight };
     SDL_RenderCopy(renderer, registerButtonTextTexture, NULL, &registerButtonTextRect);
 
-    //Render the buttons
+    //Renderiza os botoes de acordo com a copia acima
     SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
     SDL_RenderDrawRect(renderer, &loginButtonBoxRect);
     SDL_RenderDrawRect(renderer, &cancelButtonBoxRect);
     SDL_RenderDrawRect(renderer, &registerButtonBoxRect);
-    // Update the screen
+    //Atualiza o Render com todas as mudancas necessarias
     SDL_RenderPresent(renderer);
 }
 
 void centerLoginHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* registerButtonBoxRect, int windowWidth, int windowHeight) {
-    // Calculate the new position of the login box
+    //Calcula a nova posicao da caixa de login
     loginBoxRect->x = (windowWidth - loginBoxRect->w) / 2;
     loginBoxRect->y = (windowHeight - loginBoxRect->h - passwordBoxRect->h - 40) / 2;
 
-    // Calculate the new position of the password box
+    //Calcula a nova posicao da caixa de senha
     passwordBoxRect->x = (windowWidth - passwordBoxRect->w) / 2;
     passwordBoxRect->y = loginBoxRect->y + 27 + loginBoxRect->h + 10;
 
-    //Calculate the new position of the cancel button
+    //Calcula a nova posicao do botao "Cancelar"
     cancelButtonBoxRect->x = (windowWidth - loginBoxRect->w) / 2; 
     cancelButtonBoxRect->y = passwordBoxRect->y + passwordBoxRect->h + 27;
     cancelButtonBoxRect->w = 130;
 
-    //Calculate the new position of the login button
+    //Calcula a nova posicao do botao "Confirmar"
     loginButtonBoxRect->x = cancelButtonBoxRect->x + cancelButtonBoxRect->w + 40;
     loginButtonBoxRect->y = passwordBoxRect->y + passwordBoxRect->h + 27;
 
-    //Calculate the new position of the register button
+    //Calcula a nova posicao do botao "Cadastrar"
     registerButtonBoxRect->x = (windowWidth - registerButtonBoxRect->w) / 2;
     registerButtonBoxRect->y = loginButtonBoxRect->y + loginButtonBoxRect->h + 27;
 
-    //Calculate the new position of the cinepuc image box
+    //Calcula a nova posicao da imagem Cinepuc
     cinepucImageRect->x = (windowWidth - cinepucImageRect->w) / 2;
     cinepucImageRect->y = loginBoxRect->y - 220;
 
-    //Calculate the new position of the view image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a caixa de senha)
     viewImageRect->x = (passwordBoxRect->x + passwordBoxRect->w) - viewImageRect->w - 5;
     viewImageRect->y = (passwordBoxRect->y + (passwordBoxRect->h/2) - viewImageRect->h/2);
 
-    //Calculate the new position of the hide image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a caixa de senha)
     hideImageRect->x = (passwordBoxRect->x + passwordBoxRect->w) - hideImageRect->w - 5;
     hideImageRect->y = (passwordBoxRect->y + (passwordBoxRect->h/2) - hideImageRect->h/2);
 }
 
+//FUNCAO PARA RENDERIZAR A TELA DE REGISTRO
 void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color textColor,
             SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect, SDL_Texture* viewImage, SDL_Rect viewImageRect, SDL_Texture* hideImage, SDL_Rect hideImageRect, SDL_Rect confirmViewImageRect, SDL_Rect confirmHideImageRect,
             SDL_Rect loginBoxRect, SDL_Rect passwordBoxRect, SDL_Rect confirmPasswordBoxRect, SDL_Rect cancelButtonBoxRect, SDL_Rect loginButtonBoxRect,
@@ -1244,11 +1330,11 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
             int cancelButtonTextHeight, int cancelButtonTextWidth,
             int loginButtonTextHeight, int loginButtonTextWidth,
             Box* loginBoxColor, Box* passwordBoxColor, Box* confirmPasswordBoxColor) {
-    // Clear the screen
+    //Limpa a tela
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
     SDL_RenderClear(renderer);
 
-    //Clear the input text
+    //Limpa os inputs de texto + cor das caixas + mostrar/esconder senha
     if(clearInput == CLEAR){
         strcpy(loginInputText, "");
         strcpy(passwordInputText, "");
@@ -1264,233 +1350,275 @@ void renderRegisterScreen(SDL_Renderer* renderer, TTF_Font* font, SDL_Color text
         clearInput = DONT_CLEAR;
     }
 
-    // Render the login box border
+    //Renderiza a caixa de Login de acordo com a cor necessaria
     if(loginBoxColor->color == BLACK){
-        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     }
     else if(loginBoxColor->color == RED){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Vermelho
     }
     SDL_RenderDrawRect(renderer, &loginBoxRect);
 
-    //Render the cinepuc image
+    //Renderiza a imagem Cinepuc
     SDL_RenderCopy(renderer, cinepucImage, NULL, &cinepucImageRect);
 
-    //Render the view image
+    //Renderiza a imagem do olho
     if(showPassword == SHOW){
         SDL_RenderCopy(renderer, viewImage, NULL, &viewImageRect);
     }
-    //Render the hide image
+    //Renderiza a imagem do outro olho
     else if(showPassword == HIDE){
         SDL_RenderCopy(renderer, hideImage, NULL, &hideImageRect);
     }
 
-    //render the view image
+    //Renderiza a imagem do olho para segunda caixa de senha
     if(showConfirmPassword == SHOW_CONFIRM && currentScreen == REGISTER_SCREEN) {
         SDL_RenderCopy(renderer, viewImage, NULL, &confirmViewImageRect);
     }
-    //Render the hide image
+    //Renderiza a imagem do outro olho para segunda caixa de senha
     else if(showConfirmPassword == HIDE_CONFIRM && currentScreen == REGISTER_SCREEN) {
         SDL_RenderCopy(renderer, hideImage, NULL, &confirmHideImageRect);
     }
 
-    // Render the login text
+    //Determina a posicao do texto "E-mail"
+    SDL_Rect loginTextRect = { loginBoxRect.x, loginBoxRect.y - loginTextHeight, loginTextWidth, loginTextHeight };
+    //Renderiza o texto "E-mail:" logo acima da caixa de input para o login/email
+    SDL_RenderCopy(renderer, loginTextTexture, NULL, &loginTextRect);
+    //Variaveis para determinar onde sera colocado o input text da caixa login
     int loginTextPosX = loginBoxRect.x + 10;
     int loginTextPosY = loginBoxRect.y + (loginBoxRect.h - loginTextHeight) / 2;
-    SDL_Rect loginTextRect = { loginBoxRect.x, loginBoxRect.y - loginTextHeight, loginTextWidth, loginTextHeight };
-    SDL_RenderCopy(renderer, loginTextTexture, NULL, &loginTextRect);
 
-    // Render the login input text if it's not empty
+    //If necessario pois quando tentamos renderizar um texto vazio ocorre o erro: Segmentation fault (core dumped)
     if (strlen(loginInputText) > 0) {
+        //Cria a surface para o input text da caixa login
         loginInputTextSurface = TTF_RenderText_Solid(font, loginInputText, textColor);
         if (!loginInputTextSurface) {
-            SDL_Log("Failed to create login input text surface: %s", TTF_GetError());
+            SDL_Log("Falha ao criar surface: %s", TTF_GetError());
             return;
         }
 
+        //Cria a texture para o input text da caixa login
         loginInputTextTexture = SDL_CreateTextureFromSurface(renderer, loginInputTextSurface);
         if (!loginInputTextTexture) {
-            SDL_Log("Failed to create login input text texture: %s", SDL_GetError());
+            SDL_Log("Falha ao criar texture: %s", SDL_GetError());
             SDL_FreeSurface(loginInputTextSurface);
             loginInputTextSurface = NULL;
             return;
         }
 
+        //Variaveis para determinar o tamanho do texto
         int loginInputTextWidth = loginInputTextSurface->w;
         int loginInputTextHeight = loginInputTextSurface->h;
+        //Posiciona a caixa de acordo com as variaveis criadas acima do if
         SDL_Rect loginInputTextRect = { loginTextPosX, loginTextPosY, loginInputTextWidth, loginInputTextHeight };
+        //Renderiza o texto de input da caixa de login
         SDL_RenderCopy(renderer, loginInputTextTexture, NULL, &loginInputTextRect);
     }
 
-    // Render the password box border
+    //Renderiza a caixa de senha de acordo com a cor necessaria
     if(passwordBoxColor->color == BLACK){
-        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     }
     else if(passwordBoxColor->color == RED){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Vermelho
     }
     SDL_RenderDrawRect(renderer, &passwordBoxRect);
-    // Render the confirm password box border
+    //Renderiza a segunda caixa de senha de acordo com a cor necessaria
     if(confirmPasswordBoxColor->color == BLACK){
-        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+        SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     }
     else if(confirmPasswordBoxColor->color == RED){
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red color
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Vermelho
     }
     SDL_RenderDrawRect(renderer, &confirmPasswordBoxRect);
 
-    // Render the password text
+    //Determina a posicao do texto "Senha:"
+    SDL_Rect passwordTextRect = { passwordBoxRect.x, passwordBoxRect.y - passwordTextHeight, passwordTextWidth, passwordTextHeight };
+    //Renderiza o texto "Senha:"
+    SDL_RenderCopy(renderer, passwordTextTexture, NULL, &passwordTextRect);
+    //Variaveis para determinar onde sera colocado o input text da caixa senha
     int passwordTextPosX = passwordBoxRect.x + 10;
     int passwordTextPosY = passwordBoxRect.y + (passwordBoxRect.h - passwordTextHeight) / 2;
-    SDL_Rect passwordTextRect = { passwordBoxRect.x, passwordBoxRect.y - passwordTextHeight, passwordTextWidth, passwordTextHeight };
-    SDL_RenderCopy(renderer, passwordTextTexture, NULL, &passwordTextRect);
 
-    // Render the confirm password text
+    //Determina a posicao do texto "Confirmar senha:"
+    SDL_Rect confirmPasswordTextRect = { confirmPasswordBoxRect.x, confirmPasswordBoxRect.y - confirmPasswordTextHeight, confirmPasswordTextWidth, confirmPasswordTextHeight };
+    //Renderiza o texto "Confirmar senha:"
+    SDL_RenderCopy(renderer, confirmPasswordTextTexture, NULL, &confirmPasswordTextRect);
+    //Variaveis para determinar onde sera colocado o input text da segunda caixa de senha (confirma, senha)
     int confirmPasswordTextPosX = confirmPasswordBoxRect.x + 10;
     int confirmPasswordTextPosY = confirmPasswordBoxRect.y + (confirmPasswordBoxRect.h - confirmPasswordTextHeight) / 2;
-    SDL_Rect confirmPasswordTextRect = { confirmPasswordBoxRect.x, confirmPasswordBoxRect.y - confirmPasswordTextHeight, confirmPasswordTextWidth, confirmPasswordTextHeight };
-    SDL_RenderCopy(renderer, confirmPasswordTextTexture, NULL, &confirmPasswordTextRect);
 
-    // Render the password input text if it's not empty
+    //If necessario pois quando tentamos renderizar um texto vazio ocorre o erro: Segmentation fault (core dumped)
     if (strlen(passwordInputText) > 0) {
+        //Cria a surface para o input text da caixa senha, baseado na opcao do usuario de querer mostrar ou nao a senha
         if(showPassword == SHOW)
+            //se nao quiser mostrar, cria a surface dos asteriscos
             passwordInputTextSurface = TTF_RenderText_Solid(font, passwordMask, textColor);
         else if (showPassword == HIDE)
+            //se quiser mostrar, cria a surface da propria senha
             passwordInputTextSurface = TTF_RenderText_Solid(font, passwordInputText, textColor);
 
         if (!passwordInputTextSurface) {
-            SDL_Log("Failed to create password input text surface: %s", TTF_GetError());
+            SDL_Log("Falha ao criar surface: %s", TTF_GetError());
             return;
         }
 
+        //Cria a texture para o input text da caixa senha, baseado na escolha de Surface acima
         passwordInputTextTexture = SDL_CreateTextureFromSurface(renderer, passwordInputTextSurface);
         if (!passwordInputTextTexture) {
-            SDL_Log("Failed to create password input text texture: %s", SDL_GetError());
+            SDL_Log("Falha ao criar texture: %s", SDL_GetError());
             SDL_FreeSurface(passwordInputTextSurface);
             passwordInputTextSurface = NULL;
             return;
         }
 
+        //Variaveis para determinar o tamanho do texto
         int passwordInputTextWidth = passwordInputTextSurface->w;
         int passwordInputTextHeight = passwordInputTextSurface->h;
+        //Posiciona a caixa de acordo com o texto "Senha:" (no caso logo abaixo)
         SDL_Rect passwordInputTextRect = { passwordTextPosX, passwordTextPosY, passwordInputTextWidth, passwordInputTextHeight };
+        //Renderiza o texto de input da caixa de senha
         SDL_RenderCopy(renderer, passwordInputTextTexture, NULL, &passwordInputTextRect);
     }
 
+    //If necessario pois quando tentamos renderizar um texto vazio ocorre o erro: Segmentation fault (core dumped)
     if (strlen(confirmPasswordInputText) > 0) {
+        //Cria a surface para o input text da segunda caixa de senha (confirma senha), baseado na opcao do usuario de querer mostrar ou nao a senha
         if(showConfirmPassword == SHOW_CONFIRM){
+            //se nao quiser mostrar, cria a surface dos asteriscos
             confirmPasswordInputTextSurface = TTF_RenderText_Solid(font, confirmPasswordMask, textColor);
         }
         else if (showConfirmPassword == HIDE_CONFIRM){
+            //se quiser mostrar, cria a surface da propria senha
             confirmPasswordInputTextSurface = TTF_RenderText_Solid(font, confirmPasswordInputText, textColor);
         }
-
         if (!confirmPasswordInputTextSurface) {
-            SDL_Log("Failed to create password input text surface: %s", TTF_GetError());
+            SDL_Log("Falha ao criar surface: %s", TTF_GetError());
             return;
         }
 
+
+        //Cria a texture para o input text da segunda caixa de senha, baseado na escolha de Surface acima
         confirmPasswordInputTextTexture = SDL_CreateTextureFromSurface(renderer, confirmPasswordInputTextSurface);
         if (!confirmPasswordInputTextTexture) {
-            SDL_Log("Failed to create password input text texture: %s", SDL_GetError());
+            SDL_Log("Falha ao criar texture: %s", SDL_GetError());
             SDL_FreeSurface(confirmPasswordInputTextSurface);
             confirmPasswordInputTextSurface = NULL;
             return;
         }
 
+        //Variaveis para determinar o tamanho do texto
         int confirmPasswordInputTextWidth = confirmPasswordInputTextSurface->w;
         int confirmPasswordInputTextHeight = confirmPasswordInputTextSurface->h;
+        //Posiciona a caixa de acordo com o texto "Confirmar senha:" (no caso logo abaixo)
         SDL_Rect confirmPasswordInputTextRect = { confirmPasswordTextPosX, confirmPasswordTextPosY, confirmPasswordInputTextWidth, confirmPasswordInputTextHeight };
+        //Renderiza o texto de input da caixa de senha
         SDL_RenderCopy(renderer, confirmPasswordInputTextTexture, NULL, &confirmPasswordInputTextRect);
     }
 
+    //Posiciona e faz uma copia do render do botao "Cancelar"
     SDL_Rect cancelButtonTextRect = { cancelButtonBoxRect.x + (cancelButtonBoxRect.w - cancelButtonTextWidth) / 2, cancelButtonBoxRect.y + (cancelButtonBoxRect.h - cancelButtonTextHeight) / 2, cancelButtonTextWidth, cancelButtonTextHeight };
     SDL_RenderCopy(renderer, cancelButtonTextTexture, NULL, &cancelButtonTextRect);
 
+    //Posiciona e faz uma copia do render do botao "Confirmar"
     SDL_Rect loginButtonTextRect = { loginButtonBoxRect.x + (loginButtonBoxRect.w - loginButtonTextWidth) / 2, loginButtonBoxRect.y + (loginButtonBoxRect.h - loginButtonTextHeight) / 2, loginButtonTextWidth, loginButtonTextHeight };
     SDL_RenderCopy(renderer, loginButtonTextTexture, NULL, &loginButtonTextRect);
 
-    //Render the buttons
+    //Renderiza os botoes de acordo com a copia acima
     SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
     SDL_RenderDrawRect(renderer, &loginButtonBoxRect);
     SDL_RenderDrawRect(renderer, &cancelButtonBoxRect);
-    // Update the screen
+    //Atualiza o Render com todas as mudancas necessarias
     SDL_RenderPresent(renderer);
 }
 
 void centerRegisterHUD(SDL_Rect* cinepucImageRect, SDL_Rect* viewImageRect, SDL_Rect* hideImageRect, SDL_Rect* confirmViewImageRect, SDL_Rect* confirmHideImageRect, SDL_Rect* loginBoxRect, SDL_Rect* passwordBoxRect, SDL_Rect* confirmPasswordBoxRect, SDL_Rect* loginButtonBoxRect, SDL_Rect* cancelButtonBoxRect, int windowWidth, int windowHeight) {
-    // Calculate the new position of the login box
+    //Calcula a nova posicao da caixa de login
     loginBoxRect->x = (windowWidth - loginBoxRect->w) / 2;
     loginBoxRect->y = (windowHeight - loginBoxRect->h - passwordBoxRect->h - 40) / 2;
 
-    // Calculate the new position of the password box
+    //Calcula a nova posicao da caixa de senha
     passwordBoxRect->x = (windowWidth - passwordBoxRect->w) / 2;
     passwordBoxRect->y = loginBoxRect->y + 27 + loginBoxRect->h + 10;
 
-    //Calculate the new position of the confirm password box
+    //Calcula a nova posicao da segunda caixa de senha (confirma senha)
     confirmPasswordBoxRect->x = (windowWidth - confirmPasswordBoxRect->w) / 2;;
     confirmPasswordBoxRect->y = passwordBoxRect->y + passwordBoxRect->h + 37;
 
-    //Calculate the new position of the cancel button
+    //Calcula a nova posicao do botao "Cancelar"
     cancelButtonBoxRect->x = (windowWidth - loginBoxRect->w) / 2; 
     cancelButtonBoxRect->y = confirmPasswordBoxRect->y + confirmPasswordBoxRect->h + 27;
 
-    //Calculate the new position of the login button
+    //Calcula a nova posicao do botao "Confirmar"
     loginButtonBoxRect->x = cancelButtonBoxRect->x + cancelButtonBoxRect->w + 40;
     loginButtonBoxRect->y = confirmPasswordBoxRect->y + confirmPasswordBoxRect->h + 27;
 
-    //Calculate the new position of the cinepuc image box
+    //Calcula a nova posicao da imagem Cinepuc
     cinepucImageRect->x = (windowWidth - cinepucImageRect->w) / 2;
     cinepucImageRect->y = loginBoxRect->y - 220;
 
-    //Calculate the new position of the view image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a caixa de senha)
     viewImageRect->x = (passwordBoxRect->x + passwordBoxRect->w) - viewImageRect->w - 5;
     viewImageRect->y = (passwordBoxRect->y + (passwordBoxRect->h/2) - viewImageRect->h/2);
 
-    //Calculate the new position of the hide image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a caixa de senha)
     hideImageRect->x = (passwordBoxRect->x + passwordBoxRect->w) - hideImageRect->w - 5;
     hideImageRect->y = (passwordBoxRect->y + (passwordBoxRect->h/2) - hideImageRect->h/2);
 
-    //Calculate the new position of the confirm view image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a segunda caixa de senha (confirma senha))
     confirmViewImageRect->x = (confirmPasswordBoxRect->x + confirmPasswordBoxRect->w) - confirmViewImageRect->w - 5;
     confirmViewImageRect->y = (confirmPasswordBoxRect->y + (confirmPasswordBoxRect->h/2) - confirmViewImageRect->h/2);
 
-    //Calculate the new position of the confirm hide image box
+    //Calcula a nova posicao da imagem do Olho (de acordo com a segunda caixa de senha (confirma senha))
     confirmHideImageRect->x = (confirmPasswordBoxRect->x + confirmPasswordBoxRect->w) - confirmHideImageRect->w - 5;
     confirmHideImageRect->y = (confirmPasswordBoxRect->y + (confirmPasswordBoxRect->h/2) - confirmHideImageRect->h/2);
 }
 
+//FUNCAO PARA RENDERIZAR A TELA DE SELECIONAR FILMES
 void renderMovieScreen(SDL_Renderer* renderer, TTF_Font* font, char* selectMovieText, int selectMovieWidth, int selectMovieHeight, SDL_Rect* selectMovieRect,
                        int maxTextWidth, int offsetX, int offsetY, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Surface* selectMovieTextSurface, SDL_Texture* selectMovieTextTexture, int windowWidth, int windowHeight, int gridWidth, int gridHeight) {
+    //Limpa a tela
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White color
     SDL_RenderClear(renderer);
+
+    //Seta o tamanho da fonte, altura e largura do texto "Selecione o filme que deseja assistir"
     TTF_SizeText(font, selectMovieText, &selectMovieWidth, &selectMovieHeight);
     selectMovieRect->w = selectMovieWidth;
     selectMovieRect->h = 30;
-    SDL_Color textColor = {0, 0, 0}; // Black color
+    SDL_Color textColor = {0, 0, 0}; // Seta a cor para Preto
+
+    //Cria surface para o texto
     selectMovieTextSurface = TTF_RenderText_Solid(font, selectMovieText, textColor);
+    //Cria texture de acordo com a surface acima
     selectMovieTextTexture = SDL_CreateTextureFromSurface(renderer, selectMovieTextSurface);
 
+    //Renderiza o texto "Selecione o filme que deseja assistir"
     SDL_RenderCopy(renderer, selectMovieTextTexture, NULL, selectMovieRect);
 
     SDL_DestroyTexture(selectMovieTextTexture);
     SDL_FreeSurface(selectMovieTextSurface);
 
+    //Centralizar a interface
     centerMovieHUD(windowWidth, windowHeight, gridWidth, gridHeight, maxTextWidth, selectMovieRect, movieRect, textRect, renderer, font);
 }
 
 void centerMovieHUD(int windowWidth, int windowHeight, int gridWidth, int gridHeight, int maxTextWidth, SDL_Rect* selectMovieRect, SDL_Rect movieRect[][COL], SDL_Rect textRect[][COL], SDL_Renderer* renderer, TTF_Font* font) {
+    //variaveis para centralizar a interface
     int offsetX = (windowWidth - gridWidth) / 2;
     int offsetY = (windowHeight - gridHeight) / 2;
 
+    //posiciona o texto "Selecione o filme que deseja assistir"
     selectMovieRect->x = (windowWidth - selectMovieRect->w) / 2;
     selectMovieRect->y = offsetY - selectMovieRect->h - 10;
 
+    //for para posicionar os filmes e seus nomes
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COL; col++)
         {
+            //variavel para determinar a coordenada horizontal
             int x;
+            //if e else para aumentar/manter o espacamento horizontal da interface de acordo com o tamanho do texto
             if (maxTextWidth > MOVIE_WIDTH)
             {
                 x = offsetX + col * (MOVIE_WIDTH + PADDING + (341 - MOVIE_WIDTH));
@@ -1499,25 +1627,33 @@ void centerMovieHUD(int windowWidth, int windowHeight, int gridWidth, int gridHe
             {
                 x = offsetX + col * (MOVIE_WIDTH + PADDING);
             }
+            //variavel para determinal a coordenada vertical
             int y = offsetY + row * (MOVIE_HEIGHT + PADDING + 30);
-
+            
+            //posiciona a imagem de acordo com as variaveis acima
             movieRect[row][col].x = x;
             movieRect[row][col].y = y;
-            textRect[row][col].x = x + (MOVIE_WIDTH - textRect[row][col].w) / 2; // Center horizontally within image box
+            //posiciona o nome dos filmes de acordo com a posicao dos filmes
+            textRect[row][col].x = x + (MOVIE_WIDTH - textRect[row][col].w) / 2; // centralizar horizontalmente com o filme
             textRect[row][col].y = y + MOVIE_HEIGHT;
 
+            //renderiza as imagens
             SDL_RenderCopy(renderer, movies[row][col].image, NULL, &movieRect[row][col]);
 
-            SDL_Color textColor = {0, 0, 0}; // Black color
+            SDL_Color textColor = {0, 0, 0}; // Texto Preto
+            //cria surface para o nome do filme
             SDL_Surface *textSurface = TTF_RenderText_Solid(font, movies[row][col].name, textColor);
+            //cria texture de acordo com a surface acima
             SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 
+            //renderiza o nome do filme
             SDL_RenderCopy(renderer, textTexture, NULL, &textRect[row][col]);
 
             SDL_DestroyTexture(textTexture);
             SDL_FreeSurface(textSurface);
         }
     }
+    //Renderiza a interface necessaria
     SDL_RenderPresent(renderer);
 }
 
@@ -1530,72 +1666,81 @@ void renderTimeSelectionScreen(SDL_Renderer* renderer, SDL_Texture* selectTimeTe
                                SDL_Rect* cancelButtonBoxRect, SDL_Texture* cancelButtonTextTexture,
                                SDL_Texture* cinepucImage, SDL_Rect cinepucImageRect,
                                int cancelButtonTextWidth, int cancelButtonTextHeight) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // White color
+    //Limpa a tela
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);  // Branco
     SDL_RenderClear(renderer);
 
+    //Posiciona e cria uma copia do Render do primeiro botao (primeiro horario)
     SDL_Rect firstTimeButtonTextRect = { firstTimeButtonBoxRect->x + (firstTimeButtonBoxRect->w - firstTimeButtonTextWidth) / 2, firstTimeButtonBoxRect->y + (firstTimeButtonBoxRect->h - firstTimeButtonTextHeight) / 2, firstTimeButtonTextWidth, firstTimeButtonTextHeight };
     SDL_RenderCopy(renderer, firstTimeButtonTextTexture, NULL, &firstTimeButtonTextRect);
 
+    //Posiciona e cria uma copia do Render do segundo botao (segundo horario)
     SDL_Rect secondTimeButtonTextRect = { secondTimeButtonBoxRect->x + (secondTimeButtonBoxRect->w - secondTimeButtonTextWidth) / 2, secondTimeButtonBoxRect->y + (secondTimeButtonBoxRect->h - secondTimeButtonTextHeight) / 2, secondTimeButtonTextWidth, secondTimeButtonTextHeight };
     SDL_RenderCopy(renderer, secondTimeButtonTextTexture, NULL, &secondTimeButtonTextRect);
 
+    //Posiciona e cria uma copia do Render do terceiro botao (terceiro horario)
     SDL_Rect thirdTimeButtonTextRect = { thirdTimeButtonBoxRect->x + (thirdTimeButtonBoxRect->w - thirdTimeButtonTextWidth) / 2, thirdTimeButtonBoxRect->y + (thirdTimeButtonBoxRect->h - thirdTimeButtonTextHeight) / 2, thirdTimeButtonTextWidth, thirdTimeButtonTextHeight };
     SDL_RenderCopy(renderer, thirdTimeButtonTextTexture, NULL, &thirdTimeButtonTextRect);
 
+    //Posiciona e cria uma copia do Render do quarto botao (quarto horario)
     SDL_Rect fourthTimeButtonTextRect = { fourthTimeButtonBoxRect->x + (fourthTimeButtonBoxRect->w - fourthTimeButtonTextWidth) / 2, fourthTimeButtonBoxRect->y + (fourthTimeButtonBoxRect->h - fourthTimeButtonTextHeight) / 2, fourthTimeButtonTextWidth, fourthTimeButtonTextHeight };
     SDL_RenderCopy(renderer, fourthTimeButtonTextTexture, NULL, &fourthTimeButtonTextRect);
 
+    //Posiciona e cria uma copia do Render do botao "Cancelar"
     SDL_Rect cancelButtonTextRect = { cancelButtonBoxRect->x + (cancelButtonBoxRect->w - cancelButtonTextWidth) / 2, cancelButtonBoxRect->y + (cancelButtonBoxRect->h - cancelButtonTextHeight) / 2, cancelButtonTextWidth, cancelButtonTextHeight };
     SDL_RenderCopy(renderer, cancelButtonTextTexture, NULL, &cancelButtonTextRect);
 
+    //Renderiza a imagem Cinepuc
     SDL_RenderCopy(renderer, cinepucImage, NULL, &cinepucImageRect);
 
-    //Render the buttons
-    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Black color
+    //Renderiza os botoes de acordo com as copias acima
+    SDL_SetRenderDrawColor(renderer, 52, 52, 54, 255);  // Preto
     SDL_RenderDrawRect(renderer, firstTimeButtonBoxRect);
     SDL_RenderDrawRect(renderer, secondTimeButtonBoxRect);
     SDL_RenderDrawRect(renderer, thirdTimeButtonBoxRect);
     SDL_RenderDrawRect(renderer, fourthTimeButtonBoxRect);
     SDL_RenderDrawRect(renderer, cancelButtonBoxRect);
 
-    //Render the heading
+    //Renderiza o texto "Selecione o horario desejado"
     SDL_RenderCopy(renderer, selectTimeTextTexture, NULL, &selectTimeTextRect);
 
-    //Render
+    //Renderiza toda a interface
     SDL_RenderPresent(renderer);
 }
 
 void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeButtonBoxRect, SDL_Rect* secondTimeButtonBoxRect, SDL_Rect* thirdTimeButtonBoxRect, SDL_Rect* fourthTimeButtonBoxRect, SDL_Rect* cancelButtonBoxRect, SDL_Rect* cinepucImageRect, int windowWidth, int windowHeight) {
-    //Calculate the position of the first button
+    //Calcula a posicao do primeiro botao
     firstTimeButtonBoxRect->x = (windowWidth - firstTimeButtonBoxRect->w) / 2;
     firstTimeButtonBoxRect->y = (windowHeight - (4*firstTimeButtonBoxRect->h)) / 2;
     
-    //Calculate the position of the second button
+    //Calcula a posicao do segundo botao
     secondTimeButtonBoxRect->x = (windowWidth - secondTimeButtonBoxRect->w) / 2;
     secondTimeButtonBoxRect->y = firstTimeButtonBoxRect->y + secondTimeButtonBoxRect->h + 10;
 
-    //Calculate the position of the third button
+    //Calcula a posicao do terceiro botao
     thirdTimeButtonBoxRect->x = (windowWidth - thirdTimeButtonBoxRect->w) / 2;
     thirdTimeButtonBoxRect->y = secondTimeButtonBoxRect->y + thirdTimeButtonBoxRect->h + 10;
 
-    //Calculate the position of the fourth button
+    //Calcula a posicao do quarto botao
     fourthTimeButtonBoxRect->x = (windowWidth - fourthTimeButtonBoxRect->w) / 2;
     fourthTimeButtonBoxRect->y = thirdTimeButtonBoxRect->y + fourthTimeButtonBoxRect->h + 10;
 
-    //Calculate the cancel button position
+    //Calcula a posicao do botao "Cancelar"
     cancelButtonBoxRect->w = 300;
     cancelButtonBoxRect->x = (windowWidth - cancelButtonBoxRect->w) / 2;
     cancelButtonBoxRect->y = fourthTimeButtonBoxRect->y + cancelButtonBoxRect->h + 10;
 
-    //Calculate the heading position
+    //Calcula a posicao do texto "Selecione o horario desejado"
     selectTimeTextRect->x = (windowWidth - selectTimeTextRect->w) / 2;
     selectTimeTextRect->y = firstTimeButtonBoxRect->y - selectTimeTextRect->h - 10;
 
-    //Calculate the image position
+    //Calcula a posicao da imagem Cinepuc
     cinepucImageRect->x = (windowWidth - cinepucImageRect->w) / 2;
     cinepucImageRect->y = selectTimeTextRect->y - 220;
 }
 
+//NCURSES
+//TELA PARA SELECIONAR O HORARIO
 WINDOW *create_newwin(int height, int width, int starty, int startx)
 {
     WINDOW *local_win;
@@ -1626,7 +1771,7 @@ void initColors(){
     refresh();
 }
 
-void drawChairMenu(){
+void drawChairMenu(chairNcurses* cadeira){
   int boxX, boxY;
   int counter = 0; //determina quantas cadeiras foram adicionadas
   
@@ -1637,6 +1782,7 @@ void drawChairMenu(){
       {
           int boxX = STARTX + (WIDTH + GRID_SPACING) * j;  //determina onde será desenhado a cadeira/numero/letra (horizontal)
           int boxY = STARTY + (HEIGHT + GRID_SPACING) * i; //determina onde será desenhado a cadeira/numero/letra (vertical)
+          //ifs necessarios para saber quando desenha letra/numero ou cadeira
           if(i == 0 && j == 0){  
           }
           else if(i==0 && j!=0){
@@ -1650,13 +1796,14 @@ void drawChairMenu(){
             attroff(A_BOLD);
           }
           else{
-            my_win[counter] = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
+            cadeira[counter].my_win = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
             counter++;
           }
       }
   }
 }
 
+//desenha TELA
 void drawTELA(){
   WINDOW *TELA;
   int boxX, boxY;
@@ -1670,6 +1817,7 @@ void drawTELA(){
   wrefresh(TELA);
 }
 
+//desenha botao "Cancelar"
 WINDOW* drawCANCEL(){
   WINDOW *CANCEL;
   int boxX, boxY;
@@ -1684,6 +1832,7 @@ WINDOW* drawCANCEL(){
   return CANCEL;
 }
 
+//desenha botao "Confirmar"
 WINDOW* drawCONFIRM(){
   WINDOW *CONFIRM;
   int boxX, boxY;
@@ -1698,33 +1847,43 @@ WINDOW* drawCONFIRM(){
   return CONFIRM;
 }
 
-void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
+//funcao para detectar evento de mouse
+void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, chairNcurses* cadeira, dadosFrontEnd* dados){
     int windowCoordX, windowCoordY;
     MEVENT event;
     nodelay(stdscr, TRUE);
     while (1) {
         int ch = getch();
         if (ch == KEY_MOUSE) {
+            //if para determinar se o botao esquerdo foi clicado
             if (getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
                 //for para verificar todas as cadeiras
                 for (int i = 0; i < CHAIR_AMOUNT; i++){
-                  getbegyx(my_win[i], windowCoordY, windowCoordX); //get coordenada da janela i
-                  //if que detecta se a coordenada do  clique é igual a coordenada da cadeira
-                  if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
-                    wbkgd(my_win[i], COLOR_PAIR(3)); //mudar cadeira para vermelho
-                    wrefresh(my_win[i]);
-                    printf("%d", i);
-                    //printf("\n%s %d %d\n", dados.usuarioLogado, dados.idFilme, dados.idSessao);
-                    fflush(stdout);
-                  }
+                    //get coordenada da janela i
+                    getbegyx(cadeira[i].my_win, windowCoordY, windowCoordX); 
+                    //if que detecta se a coordenada do  clique é igual a coordenada da cadeira
+                    if(event.x >= windowCoordX && event.x <= windowCoordX+2 && event.y == windowCoordY){
+                        wbkgd(cadeira[i].my_win, COLOR_PAIR(3)); //mudar cadeira para vermelho
+                        wrefresh(cadeira[i].my_win);
+                        printf("%d", cadeira[i].status);
+                        //mvwprintw(stdscr, 0, 0, "%s %d %d", dados->usuarioLogado, dados->idFilme, dados->idSessao);
+                        mvwprintw(stdscr, 0, 0, "%d", cadeira[i].status);
+                        fflush(stdout);
+                    }
                 }
+                //get coordenada do botao cancelar
                 getbegyx(CANCEL, windowCoordY, windowCoordX);
+                //if que detecta se a coordenada do  clique é igual a coordenada do botao "Cancelar"
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
+                    //se sim, volta para a tela de horarios
                     currentScreen = TIME_SELECTION_SCREEN;
                     break;
                 }
+                //get coordenada do botao confirmar
                 getbegyx(CONFIRM, windowCoordY, windowCoordX);
+                //if que detecta se a coordenada do  clique é igual a coordenada do botao "Confirmar"
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
+                    //se sim, vai para a tela de login
                     currentScreen = LOGIN_SCREEN;
                     clearInput = CLEAR;
                     break;
@@ -1734,8 +1893,15 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM){
     }
 }
 
-
+//FUNCAO PARA LIMPAR TODOS OS RECURSOS DAS BIBLIOTECAS SDL, SDL_TTF E SDL_IMAGE
 void cleanUp(SDL_Texture* cinepucImage, SDL_Texture* viewImage, SDL_Texture* hideImage, SDL_Texture* loginTextTexture, SDL_Texture* passwordTextTexture, SDL_Texture* loginButtonTextTexture, SDL_Texture* cancelButtonTextTexture, SDL_Texture* registerButtonTextTexture, SDL_Texture* loginInputTextTexture, SDL_Texture* passwordInputTextTexture, SDL_Surface* loginTextSurface, SDL_Surface* passwordTextSurface, SDL_Surface* loginButtonTextSurface, SDL_Surface* cancelButtonTextSurface, SDL_Surface* registerButtonTextSurface, SDL_Surface* loginInputTextSurface, SDL_Surface* passwordInputTextSurface, SDL_Surface* confirmPasswordTextSurface, SDL_Texture* confirmPasswordTextTexture, SDL_Surface* confirmPasswordInputTextSurface, SDL_Texture* confirmPasswordInputTextTexture, SDL_Texture *selectMovieTextTexture, SDL_Surface *selectMovieTextSurface, SDL_Surface* selectTimeTextSurface, SDL_Surface* firstTimeButtonTextSurface, SDL_Surface* secondTimeButtonTextSurface, SDL_Surface* thirdTimeButtonTextSurface, SDL_Surface* fourthTimeButtonTextSurface, SDL_Texture* selectTimeTextTexture, SDL_Texture* firstTimeButtonTextTexture, SDL_Texture* secondTimeButtonTextTexture, SDL_Texture* thirdTimeButtonTextTexture, SDL_Texture* fourthTimeButtonTextTexture, SDL_Window* window, TTF_Font* font, SDL_Renderer* renderer) {
+    /*
+        DestroyTexture: finalizar as texturas criadas
+        FreeSurface: finalizar as surfaces criadas
+        CloseFont: finalizar a fonte de texto
+        DestroyRenderer: finalizar o renderizador/render
+        DestroyWindow: finalizar a janela
+    */
     SDL_DestroyTexture(cinepucImage);
     SDL_DestroyTexture(viewImage);
     SDL_DestroyTexture(hideImage);

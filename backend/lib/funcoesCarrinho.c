@@ -80,6 +80,26 @@ int retira(Carrinho* c, int numero)
     return 1;
 }
 
+int esvaziaCarrinho(Carrinho* c)
+{
+    if(estaVazia(c)){
+        return 0;
+    }
+    Cadeira* atual = c->fim;
+    Cadeira* proximo;
+
+    while (atual != NULL) {
+        proximo = atual->prox;
+        free(atual);
+        atual = proximo;
+    }
+
+    c->inicio = NULL;
+    c->fim = NULL;
+
+    return 1;
+}
+
 void mostra(Carrinho c)
 {
     if (estaVazia(c))

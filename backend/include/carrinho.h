@@ -4,7 +4,7 @@ typedef struct cadeira
     int idFilme; // 1 a 4
     int idSessao; // 1 a 4      
     int numero; // 1 a 64
-    int status;
+    int status; // Disponivel (0), ocupado (1) ou selecionado (2)
     char comprador[50];
     struct cadeira* prox;
 } Cadeira;

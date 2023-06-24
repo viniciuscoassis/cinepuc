@@ -33,4 +33,4 @@ int estaVazia(Carrinho* c);
 void mostra(Carrinho c);
 int esvaziaCarrinho(Carrinho* c);
 void adicionarArquivo(Carrinho* carrinho);
-void lerArquivo(const char* nomeArquivo);
+int lerArquivo(int idFilme, int idSessao, int numeroCadeira);

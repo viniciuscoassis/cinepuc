@@ -18,7 +18,6 @@ Para rodar o código:
 #include <string.h>
 #include "cadastro.h"
 #include "carrinho.h"
-//#include "estruturaCinema.h"
 
 // Estrutura para armazenar os dados no frontend e passar pro backend
 typedef struct {
@@ -152,7 +151,7 @@ void centerTimeSelectionHUD(SDL_Rect* selectTimeTextRect, SDL_Rect* firstTimeBut
 //TELA PARA ESCOLHER OS ASSENTOS
 WINDOW *create_newwin(int height, int width, int starty, int startx); //função para criar uma janela
 void initColors(); //função para iniciar as cores usadas no menu
-void drawChairMenu();   //função para desenhar o menu (cadeiras + letras e numeros)
+void drawChairMenu(dadosFrontEnd* dados);   //função para desenhar o menu (cadeiras + letras e numeros)
 void drawTELA();  //função para criar o texto TELA
 WINDOW* drawCANCEL(); //função pra criar o botão Cancelar
 WINDOW* drawCONFIRM(); //função pra criar o botão Confirmar
@@ -594,7 +593,7 @@ int main(int argc, char* argv[]) {
             //Init das cores
             initColors();
             //Funcao para desenhar as cadeiras
-            drawChairMenu();
+            drawChairMenu(&dados);
             //Funcao para desenhar a TELA abaixo das cadeiras
             drawTELA();
             //Funcoes para desenhar os botoes Cancelar e Confirmar
@@ -608,9 +607,9 @@ int main(int argc, char* argv[]) {
             //Funcao para encerrar o modo Ncurses
             endwin();
             mostra(carrinho);
+            //lerArquivo(carrinho.inicio->idFilme);
             int esvazia = esvaziaCarrinho(&carrinho);
             printf("\nCadeiras liberadas: %d\n", esvazia);
-            lerArquivo("cadeirasAVT.bin");
         }
     }
 
@@ -1772,7 +1771,7 @@ void initColors(){
     refresh();
 }
 
-void drawChairMenu(){
+void drawChairMenu(dadosFrontEnd* dados){
   int boxX, boxY;
   int counter = 0; //determina quantas cadeiras foram adicionadas
   
@@ -1798,6 +1797,8 @@ void drawChairMenu(){
           }
           else{
             my_win[counter] = create_newwin(HEIGHT, WIDTH, boxY, boxX); //criacao da janela (cadeira)
+            status[counter] = lerArquivo(dados->idFilme, dados->idSessao, counter);
+            
             if(status[counter] == 0){
                 wbkgd(my_win[counter], COLOR_PAIR(2)); //mudar cor da janela
                 wrefresh(my_win[counter]);  // atualizar a janela
@@ -1877,7 +1878,6 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                             wrefresh(my_win[i]);
                             status[i] = 2;
                             insere(carrinho, dados->idFilme, dados->idSessao, i, dados->usuarioLogado);
-                            //mvwprintw(stdscr, 0, 0, "Antes %d", cadeira[i].status);
                         }
                         else if(status[i] == 1){
                         }
@@ -1897,6 +1897,7 @@ void mouseFunc(WINDOW* CANCEL, WINDOW* CONFIRM, dadosFrontEnd* dados, Carrinho* 
                 //if que detecta se a coordenada do  clique é igual a coordenada do botao "Cancelar"
                 if(event.x >= windowCoordX && event.x <= windowCoordX + 14 && event.y == windowCoordY){
                     //se sim, volta para a tela de horarios
+                    esvaziaCarrinho(carrinho);
                     currentScreen = TIME_SELECTION_SCREEN;
                     break;
                 }

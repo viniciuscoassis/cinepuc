@@ -149,16 +149,16 @@ void adicionarArquivo(Carrinho* carrinho) {
     switch (carrinho->inicio->idFilme)
     {
     case 1:
-        arquivo = fopen("cadeirasSMB.bin", "ab");
+        arquivo = fopen("./arquivos/cadeirasSMB.bin", "ab");
         break;
     case 2:
-        arquivo = fopen("cadeirasGDG.bin", "ab");
+        arquivo = fopen("./arquivos/cadeirasGDG.bin", "ab");
         break;
     case 3:
-        arquivo = fopen("cadeirasVFX.bin", "ab");
+        arquivo = fopen("./arquivos/cadeirasVFX.bin", "ab");
         break;
     case 4:
-        arquivo = fopen("cadeirasAVT.bin", "ab");
+        arquivo = fopen("./arquivos/cadeirasAVT.bin", "ab");
         break;
     }
     Registro registro;
@@ -187,26 +187,50 @@ void adicionarArquivo(Carrinho* carrinho) {
     fclose(arquivo);
 }
 
-void lerArquivo(const char* nomeArquivo) {
-    FILE* arquivo = fopen(nomeArquivo, "rb");
+int lerArquivo(int idFilme, int idSessao, int numeroCadeira) {
+    FILE* arquivo;
+    printf("%d", idFilme);
+    switch (idFilme)
+    {
+    case 1:
+        arquivo = fopen("./arquivos/cadeirasSMB.bin", "rb");
+        break;
+    case 2:
+        arquivo = fopen("./arquivos/cadeirasGDG.bin", "rb");
+        break;
+    case 3:
+        arquivo = fopen("./arquivos/cadeirasVFX.bin", "rb");
+        break;
+    case 4:
+        arquivo = fopen("./arquivos/cadeirasAVT.bin", "rb");
+        break;
+    }
+
     if (arquivo == NULL) {
         printf("Não foi possível abrir o arquivo.\n");
-        return;
+        return -1;
     }
 
     //Cadeira cadeira;
     Registro registro;
 
+    // while (fread(&registro, sizeof(Registro), 1, arquivo) == 1) {
+    //     printf("ID Filme: %d\n", registro.idFilme);
+    //     printf("ID Sessão: %d\n", registro.idSessao);
+    //     printf("ID Cadeira: %d\n", registro.idCadeira);
+    //     printf("Status: %d\n", registro.status);
+    //     printf("Comprador: %s\n", registro.comprador);
+    //     printf("--------------------\n");
+    // }
     while (fread(&registro, sizeof(Registro), 1, arquivo) == 1) {
-        printf("ID Filme: %d\n", registro.idFilme);
-        printf("ID Sessão: %d\n", registro.idSessao);
-        printf("ID Cadeira: %d\n", registro.idCadeira);
-        printf("Status: %d\n", registro.status);
-        printf("Comprador: %s\n", registro.comprador);
-        printf("--------------------\n");
+        if(registro.idFilme == idFilme && registro.idSessao == idSessao && registro.idCadeira == numeroCadeira){
+            fclose(arquivo);
+            return 1;
+        }
     }
 
     fclose(arquivo);
+    return 0;
 }
 
 

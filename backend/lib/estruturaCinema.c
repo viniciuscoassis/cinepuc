@@ -38,7 +38,7 @@ int buscaCadeira(int idFilme, int idSessao, int numero) {
                 return 1;
             }            
             fclose(arquivo);
-            return 0; // Validacao bem-sucedida
+            return 0; // Disponivel
         }
     }
 }

@@ -7,19 +7,19 @@
 
 int main() {
     int quantidadeSessoes;
-    char nomeArquivo[] = "cadeirasAVT.bin";
+    char nomeArquivo[] = "cadeirasSMB.bin";
     Registro* sessoes;
 
-    // adicionarSessoes(nomeArquivo);     //QUANDO FOR CRIAR NOVA SESSÃO DE FILMES DESCOMENTAR
-    // return 0;
+    /*adicionarSessoes(nomeArquivo);     //QUANDO FOR CRIAR NOVA SESSÃO DE FILMES DESCOMENTAR
+    return 0;*/
 
 
-    // sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
-    // if (sessoes != NULL) {
-    //     // Imprime as sessões e suas cadeiras
-    //     exibirSessoes(sessoes, quantidadeSessoes);
-    // }
-    // return 1;
+    sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
+    if (sessoes != NULL) {
+         // Imprime as sessões e suas cadeiras
+         exibirSessoes(sessoes, quantidadeSessoes);
+    }
+    return 1;
 
     sessoes = obterSessoes(nomeArquivo, &quantidadeSessoes);
     if (sessoes == NULL) {

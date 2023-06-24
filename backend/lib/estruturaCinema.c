@@ -58,13 +58,16 @@ void adicionarSessoes(char* nomeArquivo) {
         return;
     }
 
-    int idSessao, idCadeira;
+    int idSessao, idCadeira, idFilme;
+
+    idFilme = 4;
 
     // Loop para adicionar 4 sessões
     for (idSessao = 1; idSessao <= 4; idSessao++) {
         // Loop para adicionar 30 cadeiras para cada sessão
-        for (idCadeira = 1; idCadeira <= 30; idCadeira++) {
+        for (idCadeira = 0; idCadeira <= 63; idCadeira++) {
             // Preenche os dados do registro
+            registro.idFilme = idFilme;
             registro.idSessao = idSessao;
             registro.idCadeira = idCadeira;
             registro.status = 0; // Status disponível
@@ -143,11 +146,12 @@ void reservarCadeira(Registro* sessoes, int quantidadeSessoes, int idSessao, int
 void exibirSessoes(Registro* sessoes, int quantidadeSessoes) {
     int i;
     for (i = 0; i < quantidadeSessoes; i++) {
-        printf("Sessão: %d, Cadeira: %d, Status: %s, Comprador: %s\n",
-               sessoes[i].idSessao,
-               sessoes[i].idCadeira,
-               sessoes[i].status == 1 ? "Ocupada" : "Disponível",
-               sessoes[i].status == 1 ? sessoes[i].comprador : "");
+        printf("Filme: %d, Sessão: %d, Cadeira: %d, Status: %s, Comprador: %s\n",
+            sessoes[i].idFilme,
+            sessoes[i].idSessao,
+            sessoes[i].idCadeira,
+            sessoes[i].status == 1 ? "Ocupada" : "Disponível",
+            sessoes[i].status == 1 ? sessoes[i].comprador : "");
     }
 }
 

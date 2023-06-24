@@ -2,6 +2,7 @@
 #define ESTRUTURACINEMA_H
 
 typedef struct {
+    int idFilme;
     int idSessao;
     int idCadeira;
     int status;

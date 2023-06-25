@@ -1,47 +1,62 @@
-# Projeto de Reserva de Assentos em Clang
+# Projeto de Reserva de Assentos
 
 ## Autores, descrição e requisitos
 
 Este é um projeto desenvolvido pelos alunos Vinicius Penido, Vinicius Assis, João Henrique, Matheus Boletta, Guilherme Andrade e Felipe Mareca, com o objetivo de criar um sistema de reserva de assentos para sessões de filmes. 
-O projeto é dividido em duas partes principais: a interface e o backend. O SQLite é utilizado para armazenar os dados das sessões e usuários, enquanto uma matriz é utilizada para representar a disposição dos assentos na sala. 
-Além disso, uma fila é implementada para armazenar os assentos escolhidos pelos usuários.
+O projeto é dividido em duas partes principais: a interface e o backend. Usamos arquivos para armazenar os ingressos comprados e também usamos Listas encadeadas para armazenar informações na parte da interface.
 
 ## Estrutura de Pastas
 
-O projeto está organizado em três pastas principais:
+O projeto está divido em três pastas:
 
-1. `src`: Esta pasta contém o arquivo principal do projeto, chamado `main.c`. É neste arquivo que a função `main` é definida e a execução do programa é iniciada.
-
-2. `lib`: Esta pasta contém as funções auxiliares necessárias para o funcionamento do programa. Essas funções podem ser divididas em arquivos separados para facilitar a manutenção e modularidade do código.
-
-3. `include`: Esta pasta contém os arquivos de cabeçalho (`.h`) que definem os tipos e protótipos das funções utilizadas no projeto. Esses arquivos de cabeçalho devem ser incluídos nos arquivos que fazem uso das funções correspondentes.
-
+1. `backend`:
+   1. `src`: Esta pasta contém o arquivo binário com os cadastros dos usuários.
+   
+   2. `lib`: Esta pasta contém as funções auxiliares necessárias para o funcionamento do programa. Essas funções podem ser divididas em arquivos separados para facilitar a manutenção e modularidade do código.
+   
+   3. `include`: Esta pasta contém os arquivos de cabeçalho (`.h`) que definem os tipos e protótipos das funções utilizadas no projeto. Esses arquivos de cabeçalho devem ser incluídos nos arquivos que fazem uso das funções correspondentes.
+2. `interface`:
+   1. `InterfaceLogin`: Esta pasta contém o arquivo principal do projeto, o main.c, onde roda toda a interface junto as funções do backend.
+   2. `assets`: Esta pasta contém as imagens e fonte utilizada na interface.
+3. `arquivos`: Esta pasta contém o arquivo binário com as informações de login
+   
 ## Dependências
 
 O projeto faz uso das seguintes dependências:
 
-- Clang: O projeto é desenvolvido em Clang, um compilador de código C. Certifique-se de ter o Clang instalado em seu sistema antes de compilar e executar o programa.
-- Ncurses: O projeto utiliza da biblioteca Ncurses para desenvolver as interfaces visuais da aplicação.
-- SQLite: O projeto utiliza o SQLite como banco de dados para armazenar informações sobre as sessões e usuários. Você precisará ter a biblioteca do SQLite instalada e configurada corretamente em seu ambiente.
+- Linux (testamos no Ubuntu)
+- Clang ou GCC: Necessário para compilar o código
+- Ncurses: O projeto utiliza da biblioteca Ncurses para desenvolver a interface visual da tela de selecionar assentos.
+- SDL2, SDL2_image, SDL2_TTF: O projeto utiliza as bibliotecas SDL2 para desenvolver a interface visual da tela de login, cadastro, selecionar filme e selecionar horário.
 
 ## Compilação e Execução
 
 Para compilar o projeto, siga as instruções abaixo:
 
-1. Certifique-se de ter o Clang instalado em seu sistema.
+1. Certifique-se de ter o Clang/GCC instalado em seu sistema.
 
-2. Navegue até a pasta raiz do projeto no terminal.
-
-3. Execute o seguinte comando para compilar o projeto:
-
+2. Instale as dependências do projeto:
    ```bash
-   clang src/main.c lib/*.c -o cinema -lsqlite3
+   sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libncurses5-dev
+   ```
+
+3. Navegue até a pasta raiz do projeto no terminal.
+
+4. Execute o seguinte comando para compilar o projeto:
+   
+   GCC:
+   ```bash
+   gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+   ```
+   CLANG:
+   ```bash
+   clang -Wall interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
    ```
   
-4. Após a compilação bem-sucedida, você pode executar o programa com o seguinte comando:
+6. Após a compilação bem-sucedida, você pode executar o programa com o seguinte comando:
 
     ```bash
-   ./cinema
+   ./CINEMA
     ```
 ## Funcionamento do Programa
 
@@ -51,17 +66,11 @@ Ao executar o programa, você será apresentado à interface de reserva de assen
 
 2. **Escolher a sessão do filme:** Você poderá selecionar a sessão desejada a partir de uma lista de sessões disponíveis.
 
-3. **Escolher um assento:** Será exibida uma matriz representando a disposição dos assentos na sala de cinema. Você poderá escolher um assento disponível a partir desta matriz.
+3. **Escolher o horário da sessão:** Você poderá selecionar o horário que deseja.
 
-4. **Visualizar pedido:** Será exibido um resumo do seu pedido, mostrando a sessão escolhida, o assento selecionado e o valor total.
+4. **Escolher um assento:** Será exibida uma matriz representando a disposição dos assentos na sala de cinema. Você poderá escolher um assento disponível a partir desta matriz.
 
-5. **Finalizar reserva:** A reserva do assento será concluída, o assento será marcado como ocupado na matriz e as informações serão armazenadas no banco de dados SQLite.
-
-Você poderá interagir com o programa selecionando as opções correspondentes e seguindo as instruções exibidas na interface. O programa garantirá que os assentos escolhidos estejam disponíveis e fornecerá um resumo do pedido antes de finalizá-lo.
-
-Após a finalização da reserva, você poderá visualizar os assentos ocupados na matriz e acessar as informações das reservas no banco de dados SQLite, para fins de gerenciamento e acompanhamento das reservas realizadas.
-
-Divirta-se usando o sistema de reserva de assentos para sessões de filmes implementado pelos alunos!
+5. **Finalizar reserva:** A reserva do assento será concluída, o assento será marcado como ocupado na matriz e as informações serão armazenadas no arquivo dentro da pasta arquivos.
 
 ## Organização:
 

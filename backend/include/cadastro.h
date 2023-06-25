@@ -4,8 +4,8 @@ typedef struct usuario {
 } Usuario;
 
 // Funcoes de cadastro e leitura de usuarios
-void cadastrarUsuario(Usuario* usuario);
-int salvarUsuarioArquivo(char email[50], char senha[20]);
-void lerUsuarios();
-int validarUsuario(const char email[50], const char senha[20]);
-int verificaUsuario(char email[50]);
+void cadastrarUsuario(Usuario* usuario); // função para cadastrar usuario
+int salvarUsuarioArquivo(char email[50], char senha[20]); // função para salvar o cadastro no arquivoi
+void lerUsuarios(); // função para mostrar os usuarios
+int validarUsuario(const char email[50], const char senha[20]); // funçao para validar o login
+int verificaUsuario(char email[50]); //funcao para verificar se o usuario ja existe pelo email

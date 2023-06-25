@@ -25,12 +25,12 @@ typedef struct {
     char comprador[50];
 } Registro;
 
-void cria(Carrinho* c);
-int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador);
-int retira(Carrinho* c, int numero);
-void reserva(Carrinho* c, char comprador[50]);
-int estaVazia(Carrinho* c);
-void mostra(Carrinho c);
-int esvaziaCarrinho(Carrinho* c);
-void adicionarArquivo(Carrinho* carrinho);
-int lerArquivo(int idFilme, int idSessao, int numeroCadeira);
+void cria(Carrinho* c); // Cria lista para ser o carrinho de compras
+int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador); // função para inserir no carrinho
+int retira(Carrinho* c, int numero); // função para retirar item do carrinho
+void reserva(Carrinho* c, char comprador[50]); // função para efetivar uma reserva percorrendo a lista
+int estaVazia(Carrinho* c); // verificação se a lista esta vazia
+void mostra(Carrinho c); // mostra todos os itens do carrinho
+int esvaziaCarrinho(Carrinho* c); // esvazia o carrinho antes de fechar o programa
+void adicionarArquivo(Carrinho* carrinho); // adiciona as reservas no arquivo de reservas
+int lerArquivo(int idFilme, int idSessao, int numeroCadeira); // le o arquivo de reservas

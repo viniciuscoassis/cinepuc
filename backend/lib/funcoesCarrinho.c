@@ -3,12 +3,15 @@
 #include <string.h>
 #include "../include/carrinho.h"
 
+// funçao que inicializa o carrinho/lista
 void cria(Carrinho* c)
 {
     c->inicio = NULL;
     c->fim = NULL;
 }
 
+
+//função para inserir no carrinho
 int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador)
 {
     Cadeira* aux = (Cadeira*)malloc(sizeof(Cadeira));
@@ -21,12 +24,14 @@ int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador)
     strcpy(aux->comprador, comprador);
     aux->prox = NULL;
 
+
+    //Caso for o primeiro registro
     if (c->inicio == NULL)
     {
         c->inicio = aux;
         c->fim = aux;
     }
-    else
+    else //Cas for proximos que nao sejam o primeiro
     {
         c->fim->prox = aux;
         c->fim = aux;
@@ -34,6 +39,7 @@ int insere(Carrinho* c, int idFilme, int idSessao, int numero, char* comprador)
     return 1;
 }
 
+//função para retirar do carrinho
 int retira(Carrinho* c, int numero)
 {
     if (estaVazia(c))
@@ -42,6 +48,7 @@ int retira(Carrinho* c, int numero)
     Cadeira* atual = c->inicio;
     Cadeira* anterior = NULL;
 
+    //percorre o carrinho encontrando a cadeira que queremos tirar
     while (atual != NULL && atual->numero != numero)
     {
         anterior = atual;
@@ -89,6 +96,7 @@ int esvaziaCarrinho(Carrinho* c)
     Cadeira* proximo;
     int contador = 0;
 
+    //percorre o carrinho dando free em todos os registros
     while (atual != NULL) {
         proximo = atual->prox;
         free(atual);
@@ -112,6 +120,7 @@ void mostra(Carrinho c)
 
     Cadeira* atual = c.inicio;
 
+    //loop para mostrar todos os dados do carrinho
     while (atual != NULL)
     {
         printf("Numero da Cadeira: %d \n", atual->numero);
@@ -131,7 +140,7 @@ void reserva(Carrinho* c, char comprador[50])
     }
 
     Cadeira* atual = c->inicio;
-
+    //loop percorrendo o carrinho atualizando o valor de comprador
     while (atual != NULL)
     {
         strcpy(atual->comprador, comprador);
@@ -139,6 +148,7 @@ void reserva(Carrinho* c, char comprador[50])
     }
 }
 
+//verificação se esta vazio o carrinho
 int estaVazia(Carrinho* c)
 {
     return c->inicio == NULL;
@@ -150,6 +160,8 @@ void adicionarArquivo(Carrinho* carrinho) {
         printf("O carrinho está vazio.\n");
         return;
     }
+
+    //verifica qual filme foi o escolhido e abre o aquivo correspondente
     FILE* arquivo;
     switch (carrinho->inicio->idFilme)
     {
@@ -175,6 +187,7 @@ void adicionarArquivo(Carrinho* carrinho) {
 
     Cadeira* cadeiraAtual = carrinho->inicio;
 
+    //loop para colocar as cadeiras reservadas no arquivo
     while (cadeiraAtual != NULL)
     {
         registro.idFilme = cadeiraAtual->idFilme;
@@ -195,6 +208,8 @@ void adicionarArquivo(Carrinho* carrinho) {
 int lerArquivo(int idFilme, int idSessao, int numeroCadeira) {
     FILE* arquivo;
     printf("%d", idFilme);
+
+    //verifica qual filme foi o escolhido e abre o aquivo correspondente
     switch (idFilme)
     {
     case 1:

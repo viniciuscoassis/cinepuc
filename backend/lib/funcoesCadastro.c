@@ -4,6 +4,7 @@
 #include "../include/cadastro.h"
 
 void cadastrarUsuario(Usuario* usuario) {
+    /*Pede para o usuario digitar um email e senha*/
     printf("Digite o email: ");
     scanf("%s", usuario->email);
     getchar();
@@ -24,7 +25,7 @@ int salvarUsuarioArquivo(char email[50], char senha[20]) {
         return -1;
     }
 
-    // Cria uma struct Usuario e preenche os campos com os dados
+    // Cria uma struct Usuario e preenche os campos com os dados da cadastrarUsuario()
     Usuario usuario;
     strcpy(usuario.email, email);
     strcpy(usuario.senha, senha);
@@ -46,6 +47,7 @@ void lerUsuarios() {
 
     Usuario usuario;
 
+    //loop para printar usuarios existentes
     while (fread(&usuario, sizeof(Usuario), 1, arquivo) == 1) {
         printf("Email: %s\n", usuario.email);
         printf("Senha: %s\n", usuario.senha);
@@ -56,6 +58,7 @@ void lerUsuarios() {
 }
 
 int validarUsuario(const char email[50], const char senha[20]) {
+    //Abre o arquivo de cadastro
     FILE* arquivo = fopen("backend/src/cadPessoa.bin", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo.\n");
@@ -64,15 +67,15 @@ int validarUsuario(const char email[50], const char senha[20]) {
 
     Usuario usuario;
     rewind(arquivo);
+    //loop para percorrer e verificar se os dados foram digitados corretamente
     while (fread(&usuario, sizeof(Usuario), 1, arquivo) == 1) {
         if (strcmp(usuario.email, email) == 0 && strcmp(usuario.senha, senha) == 0) {
-            printf("1");
             fclose(arquivo);
-            return 1; // Validacao bem-sucedida
+            return 1; // Validacao bem-sucedida / Login SUCESS
         }
     }
     fclose(arquivo);
-    return 0; // Validacao falhou
+    return 0; // Validacao falhou / Login FAILED
 }
 
 int verificaUsuario(char email[50]) {

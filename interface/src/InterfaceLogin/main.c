@@ -1,4 +1,15 @@
 /*
+Objetivo
+    Este é um projeto com o objetivo de criar um sistema de reserva de assentos para sessões de filmes. O projeto é dividido em duas partes principais: a interface e o backend. Usamos arquivos para armazenar os ingressos comprados e também usamos Listas encadeadas para armazenar informações na parte da interface.
+Desenvolvido por:
+    Backend:
+        -Vinicius Henrique
+        -Vinicius Correa
+        -Felipe Mareca
+        -Mateus Boletta
+    Frontend:
+        -João Henrique
+        -Guilherme Andrade
 Para baixar as dependencias (Linux):
     sudo apt-get install libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libncurses5-dev
     

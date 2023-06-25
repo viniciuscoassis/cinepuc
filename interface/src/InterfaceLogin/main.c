@@ -5,7 +5,10 @@ Para baixar as dependencias (Linux):
 Para rodar o código:
     -Abra o terminal na pasta cinepuc
     -Compile o código:
-        gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+        GCC:
+            gcc interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
+        CLANG:
+            clang -Wall interface/src/InterfaceLogin/main.c backend/lib/funcoesCadastro.c backend/lib/funcoesCarrinho.c -I backend/include -o CINEMA -lSDL2 -lSDL2_image -lSDL2_ttf -lncurses
     -Rode o código:
         ./CINEMA
 */
@@ -332,7 +335,8 @@ int main(int argc, char* argv[]) {
     int textWidth, textHeight;
     int maxTextWidth = 0; 
 
-    int selectMovieWidth, selectMovieHeight;
+    int selectMovieWidth = 0;
+    int selectMovieHeight = 0;
     //TELA PARA SELECIONAR O HORARIO
     int selectTimeTextWidth = selectTimeTextSurface->w;
     int selectTimeTextHeight = selectTimeTextSurface->h;
@@ -1782,8 +1786,8 @@ void drawChairMenu(dadosFrontEnd* dados){
   {
       for (int j = 0; j < CHAIR_COL_AMOUNT + 1; j++)
       {
-          int boxX = STARTX + (WIDTH + GRID_SPACING) * j;  //determina onde será desenhado a cadeira/numero/letra (horizontal)
-          int boxY = STARTY + (HEIGHT + GRID_SPACING) * i; //determina onde será desenhado a cadeira/numero/letra (vertical)
+          boxX = STARTX + (WIDTH + GRID_SPACING) * j;  //determina onde será desenhado a cadeira/numero/letra (horizontal)
+          boxY = STARTY + (HEIGHT + GRID_SPACING) * i; //determina onde será desenhado a cadeira/numero/letra (vertical)
           //ifs necessarios para saber quando desenha letra/numero ou cadeira
           if(i == 0 && j == 0){  
           }
